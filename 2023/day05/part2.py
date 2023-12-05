@@ -1,7 +1,7 @@
 from pathlib import Path
 
 def getinput():
-  path = path = Path(__file__).parent / "sample.txt"
+  path = path = Path(__file__).parent / "input.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -23,8 +23,8 @@ def sortinput(rawinputlist):
     categorycontent = []
     for line in contents:
       linecontent = line.split()
-      newlinecontent = []
       if (len(words) == 1):
+        newlinecontent = []
         temp = []
         for i in range(len(linecontent)):
           temp.append(int(linecontent[i]))
@@ -33,15 +33,9 @@ def sortinput(rawinputlist):
             temp = []
         categorycontent = newlinecontent
       else:
-        for i in range(len(linecontent)):
-          newlinecontent.append(int(linecontent[i]))
-        categorycontent.append(newlinecontent)
+        categorycontent.append([int(i) for i in linecontent])
     sortedinputlist.append([categoryname, categorycontent])
   return sortedinputlist
-
-def convseed(seed, mapstart, mapdest):
-  diff = seed - mapstart
-  return (mapdest + diff)
 
 def convseeds(seeds, toconv):
   newseeds = []
@@ -56,7 +50,7 @@ def convseeds(seeds, toconv):
       if ((mapstart <= seedstart) and (seedend < mapstop)):
         seeddata[key] = map
       elif (mapstart <= seedstart < mapstop):
-        overdiff = seedend - mapstop
+        overdiff = seedend - mapstop + 1
         cover = mapstop - seedstart
         seeddata.pop(key, "")
         key1 = str(seedstart) + '-' + str(cover)
@@ -65,7 +59,7 @@ def convseeds(seeds, toconv):
         seeddata.setdefault(key2, -1)
       elif (mapstart <= seedend < mapstop):
         underdiff = mapstart - seedstart
-        cover = seedend - mapstart
+        cover = seedend - mapstart + 1
         seeddata.pop(key, "")
         key1 = str(seedstart) + '-' + str(underdiff)
         key2 = str(mapstart) + '-' + str(cover)
@@ -74,17 +68,19 @@ def convseeds(seeds, toconv):
     if (seeddata.get(key) == -1):
       newseeds.append(seedgroup)
     elif (seeddata.get(key) != None):
+      seed = [int(i) for i in key.split('-')]
       v = seeddata.get(key)
-      newseeds.append([convseed(seedstart, toconv[v][1], toconv[v][0]), seedgroup[1]])
+      diff = toconv[v][0] - toconv[v][1]
+      newseeds.append([(seed[0] + diff), seed[1]])
     else:
       for k, v in seeddata.items():
+        seed = [int(i) for i in k.split('-')]
         if (v == -1):
-          seed = [int(i) for i in k.split('-')]
           newseeds.append(seed)
         else:
-          seed = [int(i) for i in k.split('-')]
-          newseeds.append([convseed(seed[0], toconv[v][1], toconv[v][0]), seed[1]])
-  print(newseeds)
+          diff = toconv[v][0] - toconv[v][1]
+          newseeds.append([(seed[0] + diff), seed[1]])
+  #print(newseeds, "\n")
   return newseeds
 
 def convthrough(sortedinput):
@@ -103,13 +99,12 @@ def convthrough(sortedinput):
       if (next == -1):
         print("Error, cannot convert further.")
       toconv = sortedinput[next][1]
+      print("titles:", titles)
       convdata = convseeds(convdata, toconv)
   return convdata
 
 def locvalsonly(convdata):
-  locvals = []
-  for i in convdata:
-    locvals.append(i[0])
+  locvals = [i[0] for i in convdata]
   return locvals
 
 def main():
