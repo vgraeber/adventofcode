@@ -39,22 +39,53 @@ def sortinput(rawinputlist):
     sortedinputlist.append([categoryname, categorycontent])
   return sortedinputlist
 
-def formatseeds(convdata):
-  newconvdata = []
-  for i in convdata:
-    for j in range(i[1]):
-      newconvdata.append(i[0] + j)
-  return newconvdata
+def convseed(seed, mapstart, mapdest):
+  diff = seed - mapstart
+  return (mapdest + diff)
 
-def convseed(seed, toconv):
-  conv = -1
-  for map in range(len(toconv)):
-    if (toconv[map][1] <= seed < (toconv[map][1] + toconv[map][2])):
-      conv = map
-  if (conv == -1):
-    return seed
-  else:
-    return (toconv[conv][0] + (seed - toconv[conv][1]))
+def convseeds(seeds, toconv):
+  newseeds = []
+  for seedgroup in seeds:
+    key = str(seedgroup[0]) + '-' + str(seedgroup[1])
+    seeddata = {key: -1}
+    for map in range(len(toconv)):
+      mapstart = toconv[map][1]
+      mapstop = (toconv[map][1] + toconv[map][2])
+      seedstart = seedgroup[0]
+      seedend = (seedgroup[0] + (seedgroup[1] - 1))
+      if ((mapstart <= seedstart) and (seedend < mapstop)):
+        seeddata[key] = map
+      elif (mapstart <= seedstart < mapstop):
+        overdiff = seedend - mapstop
+        cover = mapstop - seedstart
+        seeddata.pop(key, "")
+        key1 = str(seedstart) + '-' + str(cover)
+        key2 = str(mapstop) + '-' + str(overdiff)
+        seeddata[key1] = map
+        seeddata.setdefault(key2, -1)
+      elif (mapstart <= seedend < mapstop):
+        underdiff = mapstart - seedstart
+        cover = seedend - mapstart
+        seeddata.pop(key, "")
+        key1 = str(seedstart) + '-' + str(underdiff)
+        key2 = str(mapstart) + '-' + str(cover)
+        seeddata.setdefault(key1, -1)
+        seeddata[key2] = map
+    if (seeddata.get(key) == -1):
+      newseeds.append(seedgroup)
+    elif (seeddata.get(key) != None):
+      v = seeddata.get(key)
+      newseeds.append([convseed(seedstart, toconv[v][1], toconv[v][0]), seedgroup[1]])
+    else:
+      for k, v in seeddata.items():
+        if (v == -1):
+          seed = [int(i) for i in k.split('-')]
+          newseeds.append(seed)
+        else:
+          seed = [int(i) for i in k.split('-')]
+          newseeds.append([convseed(seed[0], toconv[v][1], toconv[v][0]), seed[1]])
+  print(newseeds)
+  return newseeds
 
 def convthrough(sortedinput):
   convdata = []
@@ -63,7 +94,6 @@ def convthrough(sortedinput):
     data = sortedinput[category][1]
     if (titles[0] == "start"):
       convdata = data
-      #convdata = formatseeds(convdata)
     else:
       next = -1
       for i in range(len(sortedinput)):
@@ -73,14 +103,20 @@ def convthrough(sortedinput):
       if (next == -1):
         print("Error, cannot convert further.")
       toconv = sortedinput[next][1]
-      for seed in range(len(convdata)):
-        convdata[seed] = convseed(convdata[seed], toconv)
+      convdata = convseeds(convdata, toconv)
   return convdata
+
+def locvalsonly(convdata):
+  locvals = []
+  for i in convdata:
+    locvals.append(i[0])
+  return locvals
 
 def main():
   rawinputlist = getinput()
   sortedinputlist = sortinput(rawinputlist)
   convdata = convthrough(sortedinputlist)
-  print(min(convdata))
+  locvals = locvalsonly(convdata)
+  print(min(locvals))
 
 main()
