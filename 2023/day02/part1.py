@@ -23,13 +23,6 @@ def sortcubes(cubes):
       colorindexes.append(colorsonly.index(i))
     except ValueError:
       colorindexes.append(-1)
-  for i in colors:
-    try:
-      colorsonly.pop(colorsonly.index(i))
-    except ValueError:
-      pass
-  if (len(colorsonly) > 0):
-    return False
   newcubedata = []
   for i in range(len(colorindexes)):
     if (colorindexes[i] == -1):
@@ -58,12 +51,9 @@ def removeinvalidgames(cleaninputlist):
   for game in cleaninputlist:
     validgame = True
     for gameset in game[1]:
-      if (gameset != False):
-        for i in range(len(limit)):
-          if (gameset[i] >  limit[i]):
-            validgame = False
-      else:
-        validgame = False
+      for i in range(len(limit)):
+        if (gameset[i] >  limit[i]):
+          validgame = False
     if (validgame):
       validgameids.append(game[0])
   return validgameids

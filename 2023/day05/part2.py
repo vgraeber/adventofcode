@@ -67,7 +67,7 @@ def convseeds(seeds, toconv):
         seeddata[key2] = map
     if (seeddata.get(key) == -1):
       newseeds.append(seedgroup)
-    elif (seeddata.get(key) != None):
+    elif seeddata.get(key) not None:
       seed = [int(i) for i in key.split('-')]
       v = seeddata.get(key)
       diff = toconv[v][0] - toconv[v][1]
