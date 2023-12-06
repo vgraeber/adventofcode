@@ -1,7 +1,7 @@
 from pathlib import Path
 
 def getinput():
-  path = path = Path(__file__).parent / "input.txt"
+  path = path = Path(__file__).parent / "sample.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -65,6 +65,17 @@ def convseeds(seeds, toconv):
         key2 = str(mapstart) + '-' + str(cover)
         seeddata.setdefault(key1, -1)
         seeddata[key2] = map
+      elif ((seedstart < mapstart) and (mapstop <= seedend)):
+        underdiff = mapstart - seedstart
+        overdiff = seedend - mapstop + 1
+        cover = toconv[map][2]
+        seeddata.pop(key, "")
+        key1 = str(seedstart) + '-' + str(underdiff)
+        key2 = str(mapstop) + '-' + str(overdiff)
+        key3 = str(mapstart) + '-' + str(cover)
+        seeddata.setdefault(key1, -1)
+        seeddata.setdefault(key2, -1)
+        seeddata[key3] = map
     if (seeddata.get(key) == -1):
       newseeds.append(seedgroup)
     elif seeddata.get(key) is not None:
@@ -80,7 +91,8 @@ def convseeds(seeds, toconv):
         else:
           diff = toconv[v][0] - toconv[v][1]
           newseeds.append([(seed[0] + diff), seed[1]])
-  #print(newseeds, "\n")
+    print(seeddata)
+  print(newseeds, "\n")
   return newseeds
 
 def convthrough(sortedinput):
@@ -99,7 +111,7 @@ def convthrough(sortedinput):
       if (next == -1):
         print("Error, cannot convert further.")
       toconv = sortedinput[next][1]
-      print("titles:", titles)
+      print(titles)
       convdata = convseeds(convdata, toconv)
   return convdata
 
