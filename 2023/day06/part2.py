@@ -1,5 +1,4 @@
 from pathlib import Path
-import math
 
 def getinput():
   path = path = Path(__file__).parent / "input.txt"
