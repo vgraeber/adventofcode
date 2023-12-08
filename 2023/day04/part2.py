@@ -1,7 +1,7 @@
 from pathlib import Path
 
 def getinput():
-  path = path = Path(__file__).parent / "input.txt"
+  path = Path(__file__).parent / "input.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
