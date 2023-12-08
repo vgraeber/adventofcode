@@ -10,7 +10,7 @@ def getinput():
   return rawinputlist
 
 def sorthand(card):
-  ranks = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2']
+  ranks = ['A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2', 'J']
   return ranks.index(card)
 
 def gethandtype(hvals):
