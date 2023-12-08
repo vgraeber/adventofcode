@@ -1,7 +1,7 @@
 from pathlib import Path
 
 def getinput():
-  path = Path(__file__).parent / "input.txt"
+  path = Path(__file__).parent / "dadinput.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -34,7 +34,7 @@ def gethandtype(hvals):
 
 def sortbytype(l):
   types = ["five", "four", "full", "three", "two", "one", "high"]
-  return types.index(l[1])
+  return types.index(l["type"])
 
 def sortcardinfo(rawinputlist):
   sortedinputlist = []
@@ -51,23 +51,10 @@ def sortcardinfo(rawinputlist):
     hvals = list(hdict.values())
     hvals.sort(reverse=True)
     type = gethandtype(hvals)
-    rank = 0
     bid = int(lessrawinfo[1])
-    sortedinputlist.append([list(lessrawinfo[0]), type, rank, bid])
+    sortedinputlist.append({"hand": lessrawinfo[0], "type": type, "bid": bid})
   sortedinputlist.sort(key=sortbytype)
   return sortedinputlist
-
-def sortsecondindex(l):
-  return l[1]
-
-def repeatscheck(inputlist):
-  temp = []
-  for i in inputlist:
-    if i[1] in temp:
-      return False
-    else:
-      temp.append(i[1])
-  return True
 
 def grouphandsbytype(sortedinputlist):
   types = ["five", "four", "full", "three", "two", "one", "high"]
@@ -77,105 +64,77 @@ def grouphandsbytype(sortedinputlist):
     typegroup = []
     handgroup = []
     for hand in sortedinputlist:
-      if (hand[1] == type):
+      if (hand["type"] == type):
         typegroup.append(hand)
-        handgroup.append(hand[0])
+        handgroup.append(list(hand["hand"]))
     betterinputlist.append(typegroup)
     handsonly.append(handgroup)
   return betterinputlist, handsonly
 
+def sortsecondindex(l):
+  return l[1][0]
+
 def getnumvalsofhands(handsonly):
-  orderedinput = []
+  handnuminput = []
+  ind = 0
   for type in handsonly:
     typeorder = []
     for i in range(len(type)):
-      typeorder.append([i, [sorthand(type[i][0])]])
+      handnumvals = []
+      for j in type[i]:
+        handnumvals.append(sorthand(j))
+      typeorder.append([[ind, i], handnumvals])
     typeorder.sort(key=sortsecondindex)
-    orderedinput.append(typeorder)
+    handnuminput.append(typeorder)
+    ind += 1
+  return handnuminput
+
+def orderhands(handnuminput):
+  orderedinput = []
+  for type in handnuminput:
+    for i in range(len(type)):
+      for j in range(1, len(type) - i):
+        current = type[i]
+        next = type[i + j]
+        for ind in range(5):
+          if (current[1][ind] < next[1][ind]):
+            break
+          elif (current[1][ind] > next[1][ind]):
+            type[i] = next
+            type[i + j] = current
+            break
+    orderedinput.append(type)
   return orderedinput
-
-def gethandsneedingranking(group, nums, compare):
-  newtypeorder = []
-  editedindexes = []
-  compgroups = {}
-  for i in range(len(nums) - 1):
-    cur = nums[i][1]
-    sharedcards = []
-    if (len(cur) > compare):
-      for j in range(1, len(nums) - i):
-        next = nums[i + j][1]
-        if ((len(next) > compare) and (cur == next)):
-          k = str(cur[compare])
-          if ((k in compgroups) and ((i + j) not in editedindexes)):
-            compgroups[k] += 1
-            sharedcards.append([nums[i + j][0], sorthand(group[nums[i + j][0]][compare + 1]), i + j])
-            editedindexes.append(i + j)
-          elif k not in compgroups:
-            compgroups[k] = 2
-            sharedcards.append([nums[i][0], sorthand(group[nums[i][0]][compare + 1]), i])
-            sharedcards.append([nums[i + j][0], sorthand(group[nums[i + j][0]][compare + 1]), i + j])
-            editedindexes.append(i)
-            editedindexes.append(i + 1)
-    if (sharedcards != []):
-      newtypeorder.append(sharedcards)
-  if (compgroups == {}):
-    print ("Somethings's gone wrong here.")
-  return newtypeorder, editedindexes
-
-def getnewindex(sharednum, temp):
-  for i in range(len(sharednum)):
-    if (sharednum[i][0] == temp[0]):
-      return i
 
 def sorthands(handsonly):
-  orderedinput = getnumvalsofhands(handsonly)
-  for type in range(len(handsonly)):
-    group = handsonly[type]
-    nums = orderedinput[type]
-    compare = 0
-    while not repeatscheck(nums):
-      newtypeorder, editedindexes = gethandsneedingranking(group, nums, compare)
-      ind = 0
-      for sharednum in newtypeorder:
-        sharednum.sort(key=sortsecondindex)
-        for i in range(len(sharednum)):
-          oind = editedindexes[ind + i]
-          if (nums[oind][0] == sharednum[i][0]):
-            nums[oind][1].append(sharednum[i][1])
-          else:
-            oldinfo = nums[oind]
-            oldindex = getnewindex(sharednum, oldinfo)
-            newindex = sharednum[i][2]
-            nums[oind] = nums[sharednum[i][2]]
-            nums[newindex] = oldinfo
-            sharednum[i][2] = sharednum[oldindex][2]
-            sharednum[oldindex][2] = newindex
-            nums[oind][1].append(sharednum[i][1])
-        ind += len(sharednum)
-      orderedinput[type] = nums
-      compare += 1
-      if (compare >= 6):
-        print ("exceeding length of poker hand")
-        break
+  handnuminput = getnumvalsofhands(handsonly)
+  orderedinput = orderhands(handnuminput)
   return orderedinput
 
-def sortbyrank(l):
-  return l[2]
-
 def rankhands(sortedhands, betterinputlist, rank):
-  for type in range(len(sortedhands)):
-    for hand in sortedhands[type]:
-      betterinputlist[type][hand[0]][2] = rank
+  for type in sortedhands:
+    for hand in type:
+      betterinputlist[hand[0][0]][hand[0][1]]["rank"] = rank
       rank -= 1
   return betterinputlist
 
-def getwinnings(betterinputlist):
-  winnings = []
-  for type in betterinputlist:
+def getwinnings(sortedhands, betterinputlist):
+  winnings = 0
+  for type in sortedhands:
     for hand in type:
-      eq = f"{hand[2]} * {hand[3]}"
-      winnings.append(eval(eq))
-  return winnings
+      eq = f"{betterinputlist[hand[0][0]][hand[0][1]]['rank']} * {betterinputlist[hand[0][0]][hand[0][1]]['bid']}"
+      betterinputlist[hand[0][0]][hand[0][1]]["winnings"] = eval(eq)
+      winnings += eval(eq)
+  return betterinputlist, winnings
+
+def sortbyrank(d):
+  return d["rank"]
+
+def printinfo(betterinputlist):
+  for type in betterinputlist:
+    type.sort(key=sortbyrank, reverse=True)
+    for hand in type:
+      print (hand)
 
 def main():
   rawinputlist = getinput()
@@ -183,7 +142,8 @@ def main():
   betterinputlist, handsonly = grouphandsbytype(sortedinputlist)
   sortedhands = sorthands(handsonly)
   rankedhands = rankhands(sortedhands, betterinputlist, len(sortedinputlist))
-  winnings = getwinnings(betterinputlist)
-  print (sum(winnings))
+  completeinputlist, winnings = getwinnings(sortedhands, betterinputlist)
+  printinfo(completeinputlist)
+  print (winnings)
 
 main()
