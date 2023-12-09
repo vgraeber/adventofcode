@@ -41,20 +41,44 @@ def checkmapsendinginletter(letter, maps):
       return False
   return True
 
-def followdirs(dirs, maps):
-  currentmaps = getmapsendinginletter('A', maps)
+def findstepstoexitandloop(currentmap, dirs, maps):
+  stepinfo = []
   steps = 0
-  while not checkmapsendinginletter('Z', currentmaps):
+  while (len(stepinfo) < 2):
     for dir in dirs:
-      for map in range(len(currentmaps)):
-        currentmaps[map] = getmap(currentmaps[map][dir], maps)
+      currentmap = getmap(currentmap[dir], maps)
       steps += 1
-  return steps
+    if checkmapsendinginletter('Z', [currentmap]):
+      stepinfo.append(steps)
+  return stepinfo
+
+def getstepsneeded(dirs, maps):
+  currentmaps = getmapsendinginletter('A', maps)
+  allstepinfo = []
+  for map in currentmaps:
+    stepinfo = findstepstoexitandloop(map, dirs, maps)
+    allstepinfo.append(stepinfo)
+  allstepinfo.sort()
+  print (allstepinfo)
+  indesert = True
+  while indesert:
+    for ghost in range(len(allstepinfo) - 1):
+      while (allstepinfo[ghost][0] < allstepinfo[ghost + 1][0]):
+        allstepinfo[ghost][0] += allstepinfo[ghost][1]
+        allstepinfo.sort()
+    currentsteps = []
+    for ghost in allstepinfo:
+      currentsteps.append(ghost[0])
+    if (currentsteps == ([currentsteps[0]] * len(currentsteps))):
+      indesert = False
+    else:
+      print (currentsteps)
+  return currentsteps
 
 def main():
   dirs, maps = getinput()
   maps = formatmaps(maps)
-  steps = followdirs(dirs, maps)
+  steps = getstepsneeded(dirs, maps)
   print ("steps needed:", steps)
 
 main()
