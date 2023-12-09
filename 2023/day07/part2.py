@@ -132,7 +132,6 @@ def getwinnings(sortedhands, betterinputlist):
       eq = f"{betterinputlist[hand[0][0]][hand[0][1]]['rank']} * {betterinputlist[hand[0][0]][hand[0][1]]['bid']}"
       betterinputlist[hand[0][0]][hand[0][1]]["winnings"] = eval(eq)
       winnings += eval(eq)
-      print (betterinputlist[hand[0][0]][hand[0][1]], eq, eval(eq))
   return betterinputlist, winnings
 
 def sortbyrank(d):
