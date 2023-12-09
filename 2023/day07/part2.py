@@ -1,7 +1,7 @@
 from pathlib import Path
 
 def getinput():
-  path = Path(__file__).parent / "input.txt"
+  path = Path(__file__).parent / "sample2.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -13,9 +13,16 @@ def sorthand(card):
   ranks = ['A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2', 'J']
   return ranks.index(card)
 
-def gethandtype(hvals):
+def gethandtype(hdict):
   types = ["five", "four", "full", "three", "two", "one", "high"]
   type = 6
+  hvals = list(hdict.values())
+  hvals.sort(reverse=True)
+  if 'J' in hdict:
+    if (max(hdict, key=hdict.get) != 'J'):
+      hvals[0] += hdict['J']
+    elif (len(hvals) > 1):
+      hvals[1] += hdict['J']
   if (len(hvals) == 1):
     type = 0
   elif (hvals[0] == 4):
@@ -48,9 +55,7 @@ def sortcardinfo(rawinputlist):
         hdict[card] += 1
       else:
         hdict[card] = 1
-    hvals = list(hdict.values())
-    hvals.sort(reverse=True)
-    type = gethandtype(hvals)
+    type = gethandtype(hdict)
     bid = int(lessrawinfo[1])
     sortedinputlist.append({"hand": lessrawinfo[0], "type": type, "bid": bid})
   sortedinputlist.sort(key=sortbytype)
@@ -125,6 +130,7 @@ def getwinnings(sortedhands, betterinputlist):
       eq = f"{betterinputlist[hand[0][0]][hand[0][1]]['rank']} * {betterinputlist[hand[0][0]][hand[0][1]]['bid']}"
       betterinputlist[hand[0][0]][hand[0][1]]["winnings"] = eval(eq)
       winnings += eval(eq)
+      print (betterinputlist[hand[0][0]][hand[0][1]], eq, eval(eq))
   return betterinputlist, winnings
 
 def sortbyrank(d):
