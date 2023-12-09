@@ -32,9 +32,9 @@ def gethandtype(hvals):
       type = 5
   return types[type]
 
-def sortbytype(l):
+def sortbytype(somedict):
   types = ["five", "four", "full", "three", "two", "one", "high"]
-  return types.index(l["type"])
+  return types.index(somedict["type"])
 
 def sortcardinfo(rawinputlist):
   sortedinputlist = []
@@ -71,8 +71,8 @@ def grouphandsbytype(sortedinputlist):
     handsonly.append(handgroup)
   return betterinputlist, handsonly
 
-def sortsecondindex(l):
-  return l[1][0]
+def sortsecondindex(somelist):
+  return somelist[1][0]
 
 def getnumvalsofhands(handsonly):
   handnuminput = []
@@ -127,8 +127,8 @@ def getwinnings(sortedhands, betterinputlist):
       winnings += eval(eq)
   return betterinputlist, winnings
 
-def sortbyrank(d):
-  return d["rank"]
+def sortbyrank(somedict):
+  return somedict["rank"]
 
 def printinfo(betterinputlist):
   for type in betterinputlist:
@@ -142,7 +142,7 @@ def main():
   betterinputlist, handsonly = grouphandsbytype(sortedinputlist)
   sortedhands = sorthands(handsonly)
   rankedhands = rankhands(sortedhands, betterinputlist, len(sortedinputlist))
-  completeinputlist, winnings = getwinnings(sortedhands, betterinputlist)
+  completeinputlist, winnings = getwinnings(sortedhands, rankedhands)
   #printinfo(completeinputlist)
   print (winnings)
 
