@@ -1,7 +1,7 @@
 from pathlib import Path
 
 def getinput():
-  path = Path(__file__).parent / "sample2.txt"
+  path = Path(__file__).parent / "input.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -21,9 +21,11 @@ def gethandtype(hdict):
   if 'J' in hdict:
     if (max(hdict, key=hdict.get) != 'J'):
       hvals[0] += hdict['J']
-    elif (len(hvals) > 1):
-      hvals[1] += hdict['J']
-  if (len(hvals) == 1):
+    else:
+      if (len(hvals) > 1):
+        hvals[1] += hdict['J']
+        hvals.pop(0)
+  if (hvals[0] == 5):
     type = 0
   elif (hvals[0] == 4):
     type = 1
