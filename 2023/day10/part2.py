@@ -1,7 +1,7 @@
 from pathlib import Path
 
 def getinput():
-  path = path = Path(__file__).parent / "input.txt"
+  path = path = Path(__file__).parent / "sample5.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -79,7 +79,7 @@ def increaseindir(currentloc, dir):
   return newloc
 
 def findpipeloop(startingpos, rawinputarray, pipedict):
-  pipeloop = ['S']
+  pipeloop = [startingpos]
   newdir = getnewdir('S', pipedict, '')
   newloc = startingpos
   newchar = ''
@@ -87,15 +87,110 @@ def findpipeloop(startingpos, rawinputarray, pipedict):
     newloc = increaseindir(newloc, newdir)
     newchar = rawinputarray[newloc[0]][newloc[1]]
     newdir = getnewdir(newchar, pipedict, newdir)
-    pipeloop.append(newchar)
+    pipeloop.append(newloc.copy())
   return pipeloop
+
+def sortbycol(pipeloop):
+  return pipeloop[1]
+
+def sortbyrow(pipeloop):
+  return pipeloop[0]
+
+def formatpipeloop(pipeloop):
+  pipeloop.pop()
+  pipeloop.sort(key=sortbycol)
+  pipeloop.sort(key=sortbyrow)
+  return pipeloop
+
+def getcolsonly(pipeloop, endrow):
+  newpipeloop = []
+  for row in range(endrow):
+    rowgroup = []
+    for pipe in pipeloop:
+      if (pipe[0] == row):
+        rowgroup.append(pipe[1])
+    newpipeloop.append(rowgroup)
+  return newpipeloop
+
+def checkS(pipedict):
+  corners = ['F', '7', 'L', 'J']
+  for i in corners:
+    if (pipedict.get('S') == pipedict.get(i)):
+      return i
+  return 0
+
+def checktoggles(valid, row, col, pipeloopcols, rawinputarray, cornerSval=0):
+  sides = 0
+  orig = rawinputarray[row][col - 1]
+  totoggle = {'F': 'J', 'L': '7'}
+  if (cornerSval != 0):
+    totoggle['S'] = totoggle.get(cornerSval)
+  if col in pipeloopcols[row]:
+    valid = not valid
+    if (orig == '|'):
+      sides += 1
+  else:
+    return valid, col
+  while col in pipeloopcols[row]:
+    curr = rawinputarray[row][col]
+    if (curr == '|'):
+      sides += 1
+    col += 1
+  if ((orig in totoggle) and (curr == totoggle.get(orig))):
+    valid = not valid
+  if ((sides > 1) and ((sides % 2) != 0)):
+    valid = not valid
+  return valid, col
+
+def isinloop(pipeloop, rawinputarray, pipedict):
+  charlocsinloop = []
+  startrow = pipeloop[0][0] + 1
+  endrow = pipeloop[-1][0]
+  pipeloopcols = getcolsonly(pipeloop, endrow)
+  cornerSval = checkS(pipedict)
+  for row in range(startrow, endrow):
+    valid = True
+    col = pipeloopcols[row][0] + 1
+    valid, col = checktoggles(valid, row, col, pipeloopcols, rawinputarray, cornerSval)
+    while (col < pipeloopcols[row][-1]):
+      if col in pipeloopcols[row]:
+        col += 1
+        valid = not valid
+        valid, col = checktoggles(valid, row, col, pipeloopcols, rawinputarray, cornerSval)
+      else:
+        if valid:
+          charlocsinloop.append([row, col])
+        col += 1
+  return charlocsinloop
+
+def visualdisp(charlocsinloop, pipelooplocs, rawinputarray):
+  newinputarray = []
+  for i in range(len(rawinputarray)):
+    row = []
+    for j in range(len(rawinputarray[i])):
+      if [i, j] in charlocsinloop:
+        row.append('*')
+      elif [i, j] in pipelooplocs:
+        orig = rawinputarray[i][j]
+        vischange = {'F': '┌', '7': '┐', 'J': '┘', 'L': '└'}
+        if vischange.get(orig) is None:
+          row.append(orig)
+        else:
+          row.append(vischange.get(orig))
+      else:
+        row.append('.')
+    newinputarray.append(row)
+  for line in newinputarray:
+    print (''.join(line))
 
 def main():
   rawinputarray = getinput()
   startingpos = findstartingpos(rawinputarray)
   pipedict = findpipedict(startingpos, rawinputarray)
   pipeloop = findpipeloop(startingpos, rawinputarray, pipedict)
-  halfwaymark = len(pipeloop) // 2
-  print (halfwaymark)
+  pipeloop = formatpipeloop(pipeloop)
+  charlocsinloop = isinloop(pipeloop, rawinputarray, pipedict)
+  visualdisp(charlocsinloop, pipeloop, rawinputarray)
+  print (len(charlocsinloop))
 
 main()
