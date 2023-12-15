@@ -1,7 +1,7 @@
 from pathlib import Path
 
 def getinput():
-  path = path = Path(__file__).parent / "input.txt"
+  path = path = Path(__file__).parent / "sample5.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -81,7 +81,7 @@ def increaseindir(currentloc, dir):
 def findpipeloop(startingpos, rawinputarray, pipedict):
   pipeloop = [startingpos]
   newdir = getnewdir('S', pipedict, '')
-  newloc = startingpos
+  newloc = startingpos.copy()
   newchar = ''
   while (newchar != 'S'):
     newloc = increaseindir(newloc, newdir)
@@ -132,8 +132,7 @@ def checkcorners(valid, row, col, othercorners, rawinputarray):
   return valid, col
 
 def checkverts(valid, row, col, rawinputarray):
-  verts = 1
-  col += 1
+  verts = 0
   while ((col < len(rawinputarray[row])) and (rawinputarray[row][col] == '|')):
     verts += 1
     col += 1
