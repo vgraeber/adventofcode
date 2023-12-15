@@ -117,7 +117,9 @@ def checkS(pipedict):
   for i in corners:
     if (pipedict.get('S') == pipedict.get(i)):
       return i
-  return 0
+  if (pipedict.get('S') == pipedict.get('|')):
+    return '|'
+  return None
 
 def checkcorners(valid, row, col, othercorners, rawinputarray):
   othercorner = None
@@ -144,15 +146,25 @@ def checkverts(valid, row, col, rawinputarray):
 # don't know how to make it do that
 def checktoggles(valid, row, col, pipeloopcols, rawinputarray, cornerSval):
   totoggle = {'F': {'J': True, '7': False}, 'L': {'7': True, 'J': False}}
-  if (cornerSval != 0):
-    totoggle['S'] = totoggle.get(cornerSval)
+  vertS = False
+  if cornerSval is not None:
+    initcorners = ['F', 'L']
+    endcorners = ['J', '7']
+    if cornerSval in initcorners:
+      totoggle['S'] = totoggle.get(cornerSval)
+    elif cornerSval in endcorners:
+      totoggle['F']['S'] = totoggle.get('F').get(cornerSval)
+      totoggle['L']['S'] = totoggle.get('L').get(cornerSval)
+    else:
+      vertS = True
   while col in pipeloopcols[row]:
     curr = rawinputarray[row][col]
     if (curr in totoggle):
       othercorners = totoggle.get(curr)
       valid, col = checkcorners(valid, row, col, othercorners, rawinputarray)
-    elif (curr == '|'):
+    elif ((curr == '|') or vertS):
       valid, col = checkverts(valid, row, col, rawinputarray)
+      vertS = False
   return valid, col
 
 def isinloop(pipeloop, rawinputarray, pipedict):
