@@ -104,6 +104,18 @@ def formatpipeloop(pipeloop):
   pipeloop.sort(key=sortbyrow)
   return pipeloop
 
+def formatinputarray(rawinputarray, pipeloop):
+  newinputarray = []
+  for row in range(len(rawinputarray)):
+    newrow = []
+    for col in range(len(rawinputarray[row])):
+      if ([row, col] in pipeloop):
+        newrow.append(rawinputarray[row][col])
+      else:
+        newrow.append('.')
+    newinputarray.append(newrow)
+  return newinputarray
+
 def getcolsonly(pipeloop, endrow):
   newpipeloop = []
   for row in range(endrow):
@@ -123,19 +135,20 @@ def checkS(pipedict):
     return '|'
   return None
 
-def checkcorners(valid, row, col, othercorners, rawinputarray):
+def checkcorners(valid, row, col, othercorners, newinputarray):
   othercorner = None
   while othercorner is None:
-    curr = rawinputarray[row][col]
+    curr = newinputarray[row][col]
     othercorner = othercorners.get(curr)
     col += 1
   if othercorner:
     valid = not valid
   return valid, col
 
-def checkverts(valid, row, col, rawinputarray):
-  verts = 0
-  while ((col < len(rawinputarray[row])) and (rawinputarray[row][col] == '|')):
+def checkverts(valid, row, col, newinputarray):
+  verts = 1
+  col += 1
+  while ((col < len(newinputarray[row])) and (newinputarray[row][col] == '|')):
     verts += 1
     col += 1
   if ((verts % 2) != 0):
@@ -145,7 +158,7 @@ def checkverts(valid, row, col, rawinputarray):
 # function below needs to be fixed
 # supposed to determine whether or not a piece of the array is inside the loop or not (validity)
 # don't know how to make it do that
-def checktoggles(valid, row, col, pipeloopcols, rawinputarray, cornerSval):
+def checktoggles(valid, row, col, pipeloopcols, newinputarray, cornerSval):
   totoggle = {'F': {'J': True, '7': False}, 'L': {'7': True, 'J': False}}
   vertS = False
   if cornerSval is not None:
@@ -159,16 +172,15 @@ def checktoggles(valid, row, col, pipeloopcols, rawinputarray, cornerSval):
     else:
       vertS = True
   while col in pipeloopcols[row]:
-    curr = rawinputarray[row][col]
+    curr = newinputarray[row][col]
     if (curr in totoggle):
       othercorners = totoggle.get(curr)
-      valid, col = checkcorners(valid, row, col, othercorners, rawinputarray)
+      valid, col = checkcorners(valid, row, col, othercorners, newinputarray)
     elif ((curr == '|') or ((curr == 'S') and vertS)):
-      valid, col = checkverts(valid, row, col, rawinputarray)
-      vertS = False
+      valid, col = checkverts(valid, row, col, newinputarray)
   return valid, col
 
-def isinloop(pipeloop, rawinputarray, pipedict):
+def isinloop(pipeloop, newinputarray, pipedict):
   charlocsinloop = []
   startrow = pipeloop[0][0] + 1
   endrow = pipeloop[-1][0]
@@ -177,23 +189,23 @@ def isinloop(pipeloop, rawinputarray, pipedict):
   for row in range(startrow, endrow):
     valid = False
     col = pipeloopcols[row][0]
-    valid, col = checktoggles(valid, row, col, pipeloopcols, rawinputarray, cornerSval)
+    valid, col = checktoggles(valid, row, col, pipeloopcols, newinputarray, cornerSval)
     while (col < pipeloopcols[row][-1]):
       if col in pipeloopcols[row]:
-        valid, col = checktoggles(valid, row, col, pipeloopcols, rawinputarray, cornerSval)
+        valid, col = checktoggles(valid, row, col, pipeloopcols, newinputarray, cornerSval)
       else:
         if valid:
           charlocsinloop.append([row, col])
         col += 1
   return charlocsinloop
 
-def visualdisp(charlocsinloop, pipelooplocs, rawinputarray):
+def visualdisp(charlocsinloop, pipelooplocs, newinputarray):
   newinputarray = []
   buffer = ''
   colhundreds = ['   ', buffer]
   coltens = ['   ', buffer]
   colones = ['   ', buffer]
-  for i in range(len(rawinputarray[0])):
+  for i in range(len(newinputarray[0])):
     num = str(i)
     if (len(num) < 3):
       diff = 3 - len(num)
@@ -210,17 +222,17 @@ def visualdisp(charlocsinloop, pipelooplocs, rawinputarray):
   newinputarray.append(colhundreds)
   newinputarray.append(coltens)
   newinputarray.append(colones)
-  for i in range(len(rawinputarray)):
+  for i in range(len(newinputarray)):
     num = str(i)
     if (len(num) < 3):
       diff = 3 - len(num)
       num = ('0' * diff) + num
     row = [num]
-    for j in range(len(rawinputarray[i])):
+    for j in range(len(newinputarray[i])):
       if [i, j] in charlocsinloop:
         row.append('*')
       elif [i, j] in pipelooplocs:
-        orig = rawinputarray[i][j]
+        orig = newinputarray[i][j]
         vischange = {'F': '┌', '7': '┐', 'J': '┘', 'L': '└'}
         if vischange.get(orig) is None:
           row.append(orig)
@@ -239,8 +251,9 @@ def main():
   pipedict = findpipedict(startingpos, rawinputarray)
   pipeloop = findpipeloop(startingpos, rawinputarray, pipedict)
   pipeloop = formatpipeloop(pipeloop)
-  charlocsinloop = isinloop(pipeloop, rawinputarray, pipedict)
-  visualdisp(charlocsinloop, pipeloop, rawinputarray)
+  newinputarray = formatinputarray(rawinputarray, pipeloop)
+  charlocsinloop = isinloop(pipeloop, newinputarray, pipedict)
+  visualdisp(charlocsinloop, pipeloop, newinputarray)
   print (len(charlocsinloop))
 
 main()
