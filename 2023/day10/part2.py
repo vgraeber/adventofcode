@@ -1,7 +1,7 @@
 from pathlib import Path
 
 def getinput():
-  path = path = Path(__file__).parent / "sample5.txt"
+  path = path = Path(__file__).parent / "input.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -119,34 +119,40 @@ def checkS(pipedict):
       return i
   return 0
 
+def checkcorners(valid, row, col, othercorners, rawinputarray):
+  othercorner = None
+  while othercorner is None:
+    curr = rawinputarray[row][col]
+    othercorner = othercorners.get(curr)
+    col += 1
+  if othercorner:
+    valid = not valid
+  return valid, col
+
+def checkverts(valid, row, col, rawinputarray):
+  verts = 1
+  col += 1
+  while ((col < len(rawinputarray[row])) and (rawinputarray[row][col] == '|')):
+    verts += 1
+    col += 1
+  if ((verts % 2) != 0):
+    valid = not valid
+  return valid, col
+
 # function below needs to be fixed
 # supposed to determine whether or not a piece of the array is inside the loop or not (validity)
 # don't know how to make it do that
-def checktoggles(valid, row, col, pipeloopcols, rawinputarray, cornerSval=0):
-  recentcorner = ''
-  orig = rawinputarray[row][col - 1]
-  totoggle = {'F': 'J', 'L': '7'}
+def checktoggles(valid, row, col, pipeloopcols, rawinputarray, cornerSval):
+  totoggle = {'F': {'J': True, '7': False}, 'L': {'7': True, 'J': False}}
   if (cornerSval != 0):
     totoggle['S'] = totoggle.get(cornerSval)
-  if col in pipeloopcols[row]:
-    valid = not valid
-    if orig in totoggle:
-      recentcorner = orig
-  else:
-    return valid, col
   while col in pipeloopcols[row]:
     curr = rawinputarray[row][col]
-    if (curr == '|'):
-      valid = not valid
-    elif (curr == totoggle.get(recentcorner)):
-      valid = not valid
-    elif curr in totoggle:
-      if (curr != recentcorner):
-        recentcorner = curr
-    print ("row:", row, "col:", col, "valid:", valid)
-    col += 1
-  print ("row:", row, "col:", col, "valid:", valid)
-  print ()
+    if (curr in totoggle):
+      othercorners = totoggle.get(curr)
+      valid, col = checkcorners(valid, row, col, othercorners, rawinputarray)
+    elif (curr == '|'):
+      valid, col = checkverts(valid, row, col, rawinputarray)
   return valid, col
 
 def isinloop(pipeloop, rawinputarray, pipedict):
@@ -156,13 +162,11 @@ def isinloop(pipeloop, rawinputarray, pipedict):
   pipeloopcols = getcolsonly(pipeloop, endrow)
   cornerSval = checkS(pipedict)
   for row in range(startrow, endrow):
-    valid = True
-    col = pipeloopcols[row][0] + 1
+    valid = False
+    col = pipeloopcols[row][0]
     valid, col = checktoggles(valid, row, col, pipeloopcols, rawinputarray, cornerSval)
     while (col < pipeloopcols[row][-1]):
       if col in pipeloopcols[row]:
-        col += 1
-        valid  = not valid
         valid, col = checktoggles(valid, row, col, pipeloopcols, rawinputarray, cornerSval)
       else:
         if valid:
@@ -172,18 +176,33 @@ def isinloop(pipeloop, rawinputarray, pipedict):
 
 def visualdisp(charlocsinloop, pipelooplocs, rawinputarray):
   newinputarray = []
-  coltens = [' ']
-  colones = [' ']
+  buffer = ''
+  colhundreds = ['   ', buffer]
+  coltens = ['   ', buffer]
+  colones = ['   ', buffer]
   for i in range(len(rawinputarray[0])):
-    colones.append(str(i)[-1])
+    num = str(i)
+    if (len(num) < 3):
+      diff = 3 - len(num)
+      num = ('0' * diff) + num
+    colones.append(num[2])
     if (i >= 10):
-      coltens.append(str(i)[0])
+      coltens.append(num[1])
     else:
       coltens.append(' ')
+    if (i >= 100):
+      colhundreds.append(num[0])
+    else:
+      colhundreds.append(' ')
+  newinputarray.append(colhundreds)
   newinputarray.append(coltens)
   newinputarray.append(colones)
   for i in range(len(rawinputarray)):
-    row = [str(i)]
+    num = str(i)
+    if (len(num) < 3):
+      diff = 3 - len(num)
+      num = ('0' * diff) + num
+    row = [num]
     for j in range(len(rawinputarray[i])):
       if [i, j] in charlocsinloop:
         row.append('*')
@@ -198,7 +217,7 @@ def visualdisp(charlocsinloop, pipelooplocs, rawinputarray):
         row.append('.')
     newinputarray.append(row)
   for line in newinputarray:
-    print (' '.join(line))
+    print (buffer.join(line))
   print ()
 
 def main():
