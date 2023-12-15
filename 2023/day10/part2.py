@@ -1,12 +1,13 @@
 from pathlib import Path
 
 def getinput():
-  path = path = Path(__file__).parent / "sample5.txt"
+  path = path = Path(__file__).parent / "input2.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
   rawinputlist = rawinput.split("\n")
-  rawinputlist.pop()
+  if (rawinputlist[-1] == ''):
+    rawinputlist.pop()
   rawinputarray = [list(line) for line in rawinputlist]
   return rawinputarray
 
@@ -67,7 +68,7 @@ def getnewdir(char, pipedict, prevdir):
       return dir
 
 def increaseindir(currentloc, dir):
-  newloc = currentloc
+  newloc = currentloc.copy()
   if (dir == 'N'):
     newloc[0] -= 1
   elif (dir == 'S'):
@@ -79,10 +80,11 @@ def increaseindir(currentloc, dir):
   return newloc
 
 def findpipeloop(startingpos, rawinputarray, pipedict):
-  pipeloop = [startingpos]
-  newdir = getnewdir('S', pipedict, '')
+  pipeloop = []
   newloc = startingpos.copy()
   newchar = ''
+  newdir = getnewdir('S', pipedict, '')
+  pipeloop.append(newloc.copy())
   while (newchar != 'S'):
     newloc = increaseindir(newloc, newdir)
     newchar = rawinputarray[newloc[0]][newloc[1]]
@@ -161,7 +163,7 @@ def checktoggles(valid, row, col, pipeloopcols, rawinputarray, cornerSval):
     if (curr in totoggle):
       othercorners = totoggle.get(curr)
       valid, col = checkcorners(valid, row, col, othercorners, rawinputarray)
-    elif ((curr == '|') or vertS):
+    elif ((curr == '|') or ((curr == 'S') and vertS)):
       valid, col = checkverts(valid, row, col, rawinputarray)
       vertS = False
   return valid, col
