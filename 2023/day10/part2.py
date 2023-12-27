@@ -1,7 +1,7 @@
 from pathlib import Path
 
 def getinput():
-  path = path = Path(__file__).parent / "input2.txt"
+  path = path = Path(__file__).parent / "input.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -200,7 +200,7 @@ def isinloop(pipeloop, newinputarray, pipedict):
   return charlocsinloop
 
 def visualdisp(charlocsinloop, pipelooplocs, newinputarray):
-  newinputarray = []
+  newnewinputarray = []
   buffer = ''
   colhundreds = ['   ', buffer]
   coltens = ['   ', buffer]
@@ -219,9 +219,9 @@ def visualdisp(charlocsinloop, pipelooplocs, newinputarray):
       colhundreds.append(num[0])
     else:
       colhundreds.append(' ')
-  newinputarray.append(colhundreds)
-  newinputarray.append(coltens)
-  newinputarray.append(colones)
+  newnewinputarray.append(colhundreds)
+  newnewinputarray.append(coltens)
+  newnewinputarray.append(colones)
   for i in range(len(newinputarray)):
     num = str(i)
     if (len(num) < 3):
@@ -240,8 +240,8 @@ def visualdisp(charlocsinloop, pipelooplocs, newinputarray):
           row.append(vischange.get(orig))
       else:
         row.append('.')
-    newinputarray.append(row)
-  for line in newinputarray:
+    newnewinputarray.append(row)
+  for line in newnewinputarray:
     print (buffer.join(line))
   print ()
 
