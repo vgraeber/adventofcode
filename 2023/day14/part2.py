@@ -2,7 +2,7 @@ from pathlib import Path
 import copy
 
 def getinput():
-  path = path = Path(__file__).parent / "sample.txt"
+  path = path = Path(__file__).parent / "input.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -45,17 +45,14 @@ def tiltplatform(arr, dir):
 
 def getloopvals(arr, numcycs):
   cyc = ['N', 'W', 'S', 'E']
-  prevarrs = []
+  prevarrs = [copy.deepcopy(arr)]
   for i in range(numcycs):
-    prevarrs.append(copy.deepcopy(arr))
     for dir in cyc:
       arr = tiltplatform(arr, dir)
-    for j in range(len(prevarrs)):
+    prevarrs.append(copy.deepcopy(arr))
+    for j in range(len(prevarrs) - 1):
       if (prevarrs[j] == arr):
-        printarr(prevarrs[j])
-        printarr(arr)
-        print (j, i)
-        return ([j, (i - j)], prevarrs[j:i])
+        return ([j, ((i + 1) - j)], prevarrs[j:(i + 1)])
 
 def calcload(arr):
   load = 0
