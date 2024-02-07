@@ -1,4 +1,5 @@
 from pathlib import Path
+import copy
 
 def getinput():
   path = path = Path(__file__).parent / "sample.txt"
@@ -11,10 +12,10 @@ def getinput():
   return rawinputarray
 
 def tiltplatform(arr, dir):
-  rowdirs = {'N': [1, len(arr), 1], 'S': [(len(arr) - 2), -1, -1], 'E': [0, len(arr), 1], 'W': [0, len(arr), 1]}
-  coldirs = {'N': [0, len(arr[0]), 1], 'S': [0, len(arr[0]), 1], 'E': [1, len(arr[0]), 1], 'W': [(len(arr[0]) - 2), -1, -1]}
-  posdiff = {'N': [-1, 0], 'S': [1, 0], 'E': [0, -1], 'W': [0, 1]}
-  bounds = {'N': ["UL", 0], 'S': ["LR", (len(arr) - 1)], 'E': ["UL", 0], 'W': ["LR", (len(arr[0]) - 1)]}
+  rowdirs = {'N': [1, len(arr), 1], 'S': [(len(arr) - 2), -1, -1], 'W': [0, len(arr), 1], 'E': [0, len(arr), 1]}
+  coldirs = {'N': [0, len(arr[0]), 1], 'S': [0, len(arr[0]), 1], 'W': [1, len(arr[0]), 1], 'E': [(len(arr[0]) - 2), -1, -1]}
+  posdiff = {'N': [-1, 0], 'S': [1, 0], 'W': [0, -1], 'E': [0, 1]}
+  bounds = {'N': ["UL", 0], 'S': ["LR", (len(arr) - 1)], 'W': ["UL", 0], 'E': ["LR", (len(arr[0]) - 1)]}
   for row in range(rowdirs[dir][0], rowdirs[dir][1], rowdirs[dir][2]):
     for col in range(coldirs[dir][0], coldirs[dir][1], coldirs[dir][2]):
       currchar = arr[row][col]
@@ -42,6 +43,20 @@ def tiltplatform(arr, dir):
       arr[row][col] = '.'
   return arr
 
+def getloopvals(arr, numcycs):
+  cyc = ['N', 'W', 'S', 'E']
+  prevarrs = []
+  for i in range(numcycs):
+    prevarrs.append(copy.deepcopy(arr))
+    for dir in cyc:
+      arr = tiltplatform(arr, dir)
+    for j in range(len(prevarrs)):
+      if (prevarrs[j] == arr):
+        printarr(prevarrs[j])
+        printarr(arr)
+        print (j, i)
+        return ([j, (i - j)], prevarrs[j:i])
+
 def calcload(arr):
   load = 0
   for row in range(len(arr)):
@@ -60,14 +75,10 @@ def printarr(arr):
 
 def main():
   rawinputarray = getinput()
-  cyc = ['N', 'W', 'S', 'E']
-  numcycs = 3 #1000000000
-  for i in range(numcycs):
-    for dir in cyc:
-      rawinputarray = tiltplatform(rawinputarray, dir)
-    print (i)
-    printarr(rawinputarray)
-  load = calcload(rawinputarray)
+  numcycs = 1000000000
+  loopnums, looparrs = getloopvals(rawinputarray, numcycs)
+  endloopnum = (numcycs - loopnums[0]) % loopnums[1]
+  load = calcload(looparrs[endloopnum])
   print (load)
 
 main()
