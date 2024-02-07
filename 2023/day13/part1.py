@@ -14,7 +14,7 @@ def getinput():
 
 def getvertmirror(rawinputarray):
   maxreflect = len(rawinputarray[0]) // 2
-  for col in range(1, (len(rawinputarray[0]) - 1)):
+  for col in range(1, len(rawinputarray[0])):
     leftbound = col - maxreflect
     rightbound = col + maxreflect
     if (leftbound < 0):
@@ -36,7 +36,7 @@ def getvertmirror(rawinputarray):
 
 def gethorizmirror(rawinputarray):
   maxreflect = len(rawinputarray) // 2
-  for row in range(1, (len(rawinputarray) - 1)):
+  for row in range(1, len(rawinputarray)):
     upperbound = row - maxreflect
     lowerbound = row + maxreflect
     if (upperbound < 0):
@@ -59,12 +59,9 @@ def gethorizmirror(rawinputarray):
 def printarr(arr):
   toprint = ""
   for block in arr:
-    print (block)
     for row in block:
-      print (row)
       for col in row:
         toprint += col
-      toprint += "\n"
     toprint += "\n"
   print (toprint)
 
