@@ -24,16 +24,28 @@ def getnewbeamdir(origarr, beamarr, dir, pos):
   dir = newbeamdir[currpos][dir]
   return dir
 
+def movebeam(dir, pos):
+  moveindir = {'N': [-1, 0], 'S': [1, 0], 'E': [0, 1], 'W': [0, -1]}
+  pos[0] += moveindir[dir][0]
+  pos[1] += moveindir[dir][1]
+  return pos
+
 def inbounds(origarr, pos):
   arrbounds = {"row": [0, len(origarr)], "col": [0, len(origarr[0])]}
   if ((arrbounds["row"][0] <= pos[0] < arrbounds["row"][1]) and (arrbounds["col"][0] <= pos[1] < arrbounds["col"][1])):
     return True
   return False
 
-def movebeam(dir, pos):
-  moveindir = {'N': [-1, 0], 'S': [1, 0], 'E': [0, 1], 'W': [0, -1]}
-  pos[0] += moveindir[dir][0]
-  pos[1] += moveindir[dir][1]
+def adjustpos(origarr, pos):
+  arrbounds = {"row": [0, len(origarr)], "col": [0, len(origarr[0])]}
+  if (pos[0] < arrbounds["row"][0]):
+    pos[0] = arrbounds["row"][1] + pos[0]
+  elif (arrbounds["row"][1] <= pos[0]):
+    pos[0] = pos[0] - arrbounds["row"][1]
+  if (pos[1] < arrbounds["col"][0]):
+    pos[1] = arrbounds["col"][1] + pos[1]
+  elif (arrbounds["col"][1] <= pos[1]):
+    pos[1] = pos[1] - arrbounds["col"][1]
   return pos
 
 def managebeam(origarr, beamarr, dir, pos):
@@ -51,14 +63,8 @@ def managebeam(origarr, beamarr, dir, pos):
       else:
         return
     pos = movebeam(dir, pos)
-    while not inbounds(origarr, pos):
-      if (len(dirqueue) > 0):
-        dir = dirqueue[0][0]
-        pos = dirqueue[0][1]
-        dirqueue.pop(0)
-        pos = movebeam(dir, pos)
-      else:
-        return
+    if not inbounds(origarr, pos):
+      pos = adjustpos(origarr, pos)
 
 def calcenergized(beamarr):
   energized = 0
