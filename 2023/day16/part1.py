@@ -1,7 +1,7 @@
 from pathlib import Path
 
 def getinput():
-  path = path = Path(__file__).parent / "input.txt"
+  path = path = Path(__file__).parent / "sample.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -13,15 +13,16 @@ def getinput():
 def movebeam(origarr, beamarr, dir, pos):
   moveindir = {'N': [-1, 0], 'S': [1, 0], 'E': [0, 1], 'W': [0, -1]}
   beamreact = {'.': {'N': 'N', 'S': 'S', 'E': 'E', 'W': 'W'}, '/': {'N': 'E', 'S': 'W', 'E': 'N', 'W': 'S'}, '\\': {'N': 'W', 'S': 'E', 'E': 'S', 'W': 'N'}, '|': {'N': 'N', 'S': 'S', 'E': ['N', 'S'], 'W': ['N', 'S']}, '-': {'N': ['E', 'W'], 'S': ['E', 'W'], 'E': 'E', 'W': 'W'}}
+  beamopps = {'.': {'N': 'S','S': 'N','E': 'W','W': 'E'}, '/': {'N': 'W','S': 'E','E': 'S','W': 'N'}, '\\': {'N': 'E','S': 'W','E': 'N','W': 'S'}, '|': {'N': 'S','S': 'N','E': 'W','W': 'E'}, '-': {'N': 'S','S': 'N','E': 'W','W': 'E'}}
   arrbounds = {"row": [0, len(origarr)], "col": [0, len(origarr[0])]}
+  currpos = origarr[pos[0]][pos[1]]
   if (beamarr[pos[0]][pos[1]][0] != '#'):
     beamarr[pos[0]][pos[1]][0] = '#'
     beamarr[pos[0]][pos[1]][1].append(dir)
-  elif (dir not in beamarr[pos[0]][pos[1]][1]):
+  elif ((dir not in beamarr[pos[0]][pos[1]][1]) and (beamopps[currpos][dir] not in beamarr[pos[0]][pos[1]][1])):
     beamarr[pos[0]][pos[1]][1].append(dir)
   else:
     return
-  currpos = origarr[pos[0]][pos[1]]
   dir = beamreact[currpos][dir]
   if (isinstance(dir, list)):
     pos1 = [(pos[0] + moveindir[dir[0]][0]), (pos[1] + moveindir[dir[0]][1])]
@@ -59,6 +60,7 @@ def main():
   rawinputarray = getinput()
   beamarray = [[['.', []] for col in row] for row in rawinputarray]
   movebeam(rawinputarray, beamarray, 'E', [0, 0])
+  printarr(beamarray, True)
   energized = calcenergized(beamarray)
   print (energized)
 
