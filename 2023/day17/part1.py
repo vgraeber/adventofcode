@@ -65,20 +65,24 @@ def editdistarr(origarr, distarr, currpos, nextposs):
       editedposs.append(pos)
     elif (newdist == currnode[0]):
       origdir = currnode[2]
+      origcount = currnode[1]
       if (not isinstance(origdir, list)):
         origdir = [origdir]
-      if (pos[2] not in origdir):
+      if (pos[1] < origcount):
+        currnode = [newdist, pos[1], pos[2]]
+      elif (pos[2] not in origdir):
         origdir.append(pos[2])
         currnode = [newdist, pos[1], origdir]
-      print (currnode)
     distarr[pos[0][0]][pos[0][1]] = currnode
   return editedposs
 
-def notmapped(distarr):
+def notmapped(distarr, prevdistarr):
   for row in distarr:
     for col in row:
       if (col[0] == "dist"):
         return True
+  if (distarr != prevdistarr):
+    return True
   return False
 
 def printarr(arr):
@@ -98,7 +102,8 @@ def main():
   distarr[0][0] = [0, startcount, None]
   dest = [(len(rawinputarray) - 1), (len(rawinputarray[0]) - 1)]
   mapqueue = [[startpos, startcount, None]]
-  while notmapped(distarr):
+  prevdistarr = []
+  while notmapped(distarr, prevdistarr):
     newmapqueue = []
     for poss in mapqueue:
       nextposs = movecruc(rawinputarray, poss[0], poss[2], poss[1])
@@ -106,6 +111,7 @@ def main():
       for editedpos in editedposs:
         newmapqueue.append(editedpos)
     mapqueue = newmapqueue
+    prevdistarr = distarr.copy()
   printarr(distarr)
 
 main()
