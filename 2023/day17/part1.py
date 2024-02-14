@@ -1,4 +1,5 @@
 from pathlib import Path
+import copy
 
 def getinput():
   path = path = Path(__file__).parent / "sample.txt"
@@ -128,7 +129,7 @@ def runthroughcity(rawinputarray, distarr):
   prevdistarr = []
   while notmapped(distarr, prevdistarr):
     newmapqueue = []
-    prevdistarr = distarr.copy()
+    prevdistarr = copy.deepcopy(distarr)
     for poss in mapqueue:
       nextposs = movecruc(rawinputarray, poss[0], poss[2], poss[1])
       editedposs = editdistarr(rawinputarray, distarr, [poss[0], poss[2]], nextposs)
