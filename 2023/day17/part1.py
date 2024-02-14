@@ -17,6 +17,22 @@ def rem(origlist, remele):
   except ValueError:
     pass
 
+def fixdistarrbounds(arr):
+  arrbounds = {"row": [0, (len(arr) - 1)], "col": [0, (len(arr[0]) - 1)]}
+  for r in range(len(arr)):
+    for c in range(len(arr[r])):
+      if (r == arrbounds["row"][0]):
+        arr[r][c].pop('S')
+      elif (r == arrbounds["row"][1]):
+        arr[r][c].pop('N')
+      if (c == arrbounds["col"][0]):
+        arr[r][c].pop('E')
+      elif (c == arrbounds["col"][1]):
+        arr[r][c].pop('W')
+  for dir in arr[0][0].keys():
+    arr[0][0][dir] = [[0, 0]]
+  print (arr[0][0])
+
 def getvaldirs(arr, currpos, prevdir, counter):
   oppdir = {'N': 'S', 'S': 'N', 'E': 'W', 'W': 'E'}
   arrbounds = {"row": [0, (len(arr) - 1)], "col": [0, (len(arr[0]) - 1)]}
@@ -51,36 +67,39 @@ def movecruc(arr, currpos, prevdir, counter):
   return nextposs
 
 def editdistarr(origarr, distarr, currpos, nextposs):
-  currdist = distarr[currpos[0]][currpos[1]][0]
   editedposs = []
   for pos in nextposs:
-    adddist = origarr[pos[0][0]][pos[0][1]]
-    newdist = currdist + adddist
-    currnode = distarr[pos[0][0]][pos[0][1]]
-    if (currnode[0] == "dist"):
-      currnode = [newdist, pos[1], pos[2]]
-      editedposs.append(pos)
-    elif (newdist < currnode[0]):
-      currnode = [newdist, pos[1], pos[2]]
-      editedposs.append(pos)
-    elif (newdist == currnode[0]):
-      origdir = currnode[2]
-      origcount = currnode[1]
-      if (not isinstance(origdir, list)):
-        origdir = [origdir]
-      if (pos[1] < origcount):
-        currnode = [newdist, pos[1], pos[2]]
-      elif (pos[2] not in origdir):
-        origdir.append(pos[2])
-        currnode = [newdist, pos[1], origdir]
-    distarr[pos[0][0]][pos[0][1]] = currnode
+    currdist = distarr[currpos[0][0]][currpos[0][1]][currpos[1]]
+    for j in range(len(currdist)):
+      currnodesdir = distarr[pos[0][0]][pos[0][1]][pos[2]]
+      for i in range(len(currnodesdir)):
+        adddist = origarr[pos[0][0]][pos[0][1]]
+        newdist = currdist[j][0] + adddist
+        currnode = currnodesdir[i]
+        origcount = currnode[1]
+        if (currnode[0] == "dist"):
+          currnode = [newdist, pos[1]]
+          editedposs.append(pos)
+        elif ((newdist < currnode[0]) and (pos[1] < origcount)):
+          currnode = [newdist, pos[1]]
+          editedposs.append(pos)
+        elif ((newdist < currnode[0]) or (pos[1] < origcount)):
+          currnodesdir.append([newdist, pos[1]])
+          editedposs.append(pos)
+        elif ((newdist == currnode[0]) and (pos[1] < origcount)):
+          currnode = [newdist, pos[1]]
+          editedpos.append(pos)
+        currnodesdir[i] = currnode
+      distarr[pos[0][0]][pos[0][1]][pos[2]] = currnodesdir
   return editedposs
 
 def notmapped(distarr, prevdistarr):
   for row in distarr:
     for col in row:
-      if (col[0] == "dist"):
-        return True
+      for dir in col.values():
+        for node in dir:
+          if (node[0] == "dist"):
+            return True
   if (distarr != prevdistarr):
     return True
   return False
@@ -96,18 +115,18 @@ def printarr(arr):
 def main():
   rawinputarray = getinput()
   printarr(rawinputarray)
-  distarr = [[["dist", "count", "dir"] for col in row] for row in rawinputarray]
+  distarr = [[{'N': [["dist", "count"]], 'S': [["dist", "count"]], 'E': [["dist", "count"]], 'W': [["dist", "count"]]} for col in row] for row in rawinputarray]
   startpos = [0, 0]
   startcount = 0
-  distarr[0][0] = [0, startcount, None]
+  fixdistarrbounds(distarr)
   dest = [(len(rawinputarray) - 1), (len(rawinputarray[0]) - 1)]
-  mapqueue = [[startpos, startcount, None]]
+  mapqueue = [[startpos, startcount, 'N']]
   prevdistarr = []
   while notmapped(distarr, prevdistarr):
     newmapqueue = []
     for poss in mapqueue:
       nextposs = movecruc(rawinputarray, poss[0], poss[2], poss[1])
-      editedposs = editdistarr(rawinputarray, distarr, poss[0], nextposs)
+      editedposs = editdistarr(rawinputarray, distarr, [poss[0], poss[2]], nextposs)
       for editedpos in editedposs:
         newmapqueue.append(editedpos)
     mapqueue = newmapqueue
