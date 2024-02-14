@@ -11,12 +11,6 @@ def getinput():
   rawinputarray = [[int(col) for col in row] for row in rawinputarray]
   return rawinputarray
 
-def rem(origlist, remele):
-  try:
-    origlist.remove(remele)
-  except ValueError:
-    pass
-
 def fixdistarrbounds(arr):
   arrbounds = {"row": [0, (len(arr) - 1)], "col": [0, (len(arr[0]) - 1)]}
   for r in range(len(arr)):
@@ -31,14 +25,19 @@ def fixdistarrbounds(arr):
         arr[r][c].pop('W')
   for dir in arr[0][0].keys():
     arr[0][0][dir] = [[0, 0]]
-  print (arr[0][0])
+
+def rem(origlist, remele):
+  try:
+    origlist.remove(remele)
+  except ValueError:
+    pass
 
 def getvaldirs(arr, currpos, prevdir, counter):
-  oppdir = {'N': 'S', 'S': 'N', 'E': 'W', 'W': 'E'}
+  oppdirs = {'N': 'S', 'S': 'N', 'E': 'W', 'W': 'E'}
   arrbounds = {"row": [0, (len(arr) - 1)], "col": [0, (len(arr[0]) - 1)]}
   dirs = ['N', 'E', 'S', 'W']
-  remdir = oppdir.setdefault(prevdir, None)
-  rem(dirs, remdir)
+  oppdir = oppdirs.setdefault(prevdir, None)
+  rem(dirs, oppdir)
   if (counter == 3):
     rem(dirs, prevdir)
   if (currpos[0] == arrbounds["row"][0]):
@@ -66,6 +65,13 @@ def movecruc(arr, currpos, prevdir, counter):
     nextposs.append(nextpos)
   return nextposs
 
+def remdupes(nodes):
+  newnodes = []
+  for n in nodes:
+    if (n not in newnodes):
+      newnodes.append(n)
+  return newnodes
+
 def editdistarr(origarr, distarr, currpos, nextposs):
   editedposs = []
   for pos in nextposs:
@@ -79,30 +85,32 @@ def editdistarr(origarr, distarr, currpos, nextposs):
         origcount = currnode[1]
         if (currnode[0] == "dist"):
           currnode = [newdist, pos[1]]
-          editedposs.append(pos)
-        elif ((newdist < currnode[0]) and (pos[1] < origcount)):
+          if (pos not in editedposs):
+            editedposs.append(pos)
+        elif (((newdist <= currnode[0]) and (pos[1] <= origcount)) and ((newdist != currnode[0]) or (pos[1] != origcount))):
           currnode = [newdist, pos[1]]
-          editedposs.append(pos)
+          if (pos not in editedposs):
+            editedposs.append(pos)
         elif ((newdist < currnode[0]) or (pos[1] < origcount)):
           currnodesdir.append([newdist, pos[1]])
-          editedposs.append(pos)
-        elif ((newdist == currnode[0]) and (pos[1] < origcount)):
-          currnode = [newdist, pos[1]]
-          editedpos.append(pos)
+          if (pos not in editedposs):
+            editedposs.append(pos)
         currnodesdir[i] = currnode
+      currnodesdir = remdupes(currnodesdir)
       distarr[pos[0][0]][pos[0][1]][pos[2]] = currnodesdir
   return editedposs
 
 def notmapped(distarr, prevdistarr):
+  if (distarr != prevdistarr):
+    return True
+  return False
   for row in distarr:
     for col in row:
       for dir in col.values():
         for node in dir:
           if (node[0] == "dist"):
+            print (col)
             return True
-  if (distarr != prevdistarr):
-    return True
-  return False
 
 def printarr(arr):
   toprint = ""
@@ -112,25 +120,27 @@ def printarr(arr):
     toprint += "\n"
   print (toprint)
 
-def main():
-  rawinputarray = getinput()
-  printarr(rawinputarray)
-  distarr = [[{'N': [["dist", "count"]], 'S': [["dist", "count"]], 'E': [["dist", "count"]], 'W': [["dist", "count"]]} for col in row] for row in rawinputarray]
+def runthroughcity(rawinputarray, distarr):
   startpos = [0, 0]
   startcount = 0
-  fixdistarrbounds(distarr)
-  dest = [(len(rawinputarray) - 1), (len(rawinputarray[0]) - 1)]
   mapqueue = [[startpos, startcount, 'N']]
   prevdistarr = []
   while notmapped(distarr, prevdistarr):
     newmapqueue = []
+    prevdistarr = distarr.copy()
     for poss in mapqueue:
       nextposs = movecruc(rawinputarray, poss[0], poss[2], poss[1])
       editedposs = editdistarr(rawinputarray, distarr, [poss[0], poss[2]], nextposs)
       for editedpos in editedposs:
         newmapqueue.append(editedpos)
     mapqueue = newmapqueue
-    prevdistarr = distarr.copy()
+
+def main():
+  rawinputarray = getinput()
+  printarr(rawinputarray)
+  distarr = [[{'N': [["dist", "count"]], 'S': [["dist", "count"]], 'E': [["dist", "count"]], 'W': [["dist", "count"]]} for col in row] for row in rawinputarray]
+  fixdistarrbounds(distarr)
+  runthroughcity(rawinputarray, distarr)
   printarr(distarr)
 
 main()
