@@ -25,6 +25,7 @@ def fixdistarrbounds(arr):
         arr[r][c].pop('W')
   for dir in arr[0][0].keys():
     arr[0][0][dir] = [[0, 0]]
+  arr[0][0][None] = [[0, 0]]
 
 def rem(origlist, remele):
   try:
@@ -97,7 +98,7 @@ def editdistarr(origarr, distarr, currpos, nextposs):
             editedposs.append(pos)
         currnodesdir[i] = currnode
       currnodesdir = remdupes(currnodesdir)
-      distarr[pos[0][0]][pos[0][1]][pos[2]] = currnodesdir
+      #distarr[pos[0][0]][pos[0][1]][pos[2]] = currnodesdir
   return editedposs
 
 def notmapped(distarr, prevdistarr):
@@ -123,7 +124,7 @@ def printarr(arr):
 def runthroughcity(rawinputarray, distarr):
   startpos = [0, 0]
   startcount = 0
-  mapqueue = [[startpos, startcount, 'N']]
+  mapqueue = [[startpos, startcount, None]]
   prevdistarr = []
   while notmapped(distarr, prevdistarr):
     newmapqueue = []
@@ -141,6 +142,6 @@ def main():
   distarr = [[{'N': [["dist", "count"]], 'S': [["dist", "count"]], 'E': [["dist", "count"]], 'W': [["dist", "count"]]} for col in row] for row in rawinputarray]
   fixdistarrbounds(distarr)
   runthroughcity(rawinputarray, distarr)
-  printarr(distarr)
+  #printarr(distarr)
 
 main()
