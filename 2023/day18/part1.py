@@ -10,16 +10,20 @@ def getinput():
   rawinputarray = [line.split(' ') for line in rawinputlist]
   return rawinputarray
 
+def move(pos, dir, mult):
+  moveindir = {'U': [-1, 0], 'D': [1, 0], 'R': [0, 1], 'L': [0, -1]}
+  pos[0] += moveindir[dir][0] * mult
+  pos[1] += moveindir[dir][1] * mult
+  return pos
+
 def getarrsize(inputarr):
   pos = [0, 0]
   top = 0
   bott = 0
   left = 0
   right = 0
-  moveindir = {'U': [-1, 0], 'D': [1, 0], 'R': [0, 1], 'L': [0, -1]}
   for line in inputarr:
-    pos[0] += moveindir[line[0]][0] * int(line[1])
-    pos[1] += moveindir[line[0]][1] * int(line[1])
+    pos = move(pos, line[0], int(line[1]))
     if (pos[0] < top):
       top = pos[0]
     if (bott < pos[0]):
@@ -30,10 +34,28 @@ def getarrsize(inputarr):
       right = pos[1]
   numrows = bott - top + 1
   numcols = right - left + 1
-  return numrows, numcols
+  startpos = [pos[0] - top, pos[1] - left]
+  return numrows, numcols, startpos
 
-def dig(diginst, digarr, dir, pos):
-  moveindir = {'U': [-1, 0], 'D': [1, 0], 'R': [0, 1], 'L': [0, -1]}
+def dig(diginst, digarr, pos):
+  digarr[pos[0]][pos[1]] = '#'
+  for line in diginst:
+    for i in range(int(line[1])):
+      pos = move(pos, line[0], 1)
+      digarr[pos[0]][pos[1]] = '#'
+  printarr(digarr)
+
+def fill(digarr):
+  for row in range(len(digarr)):
+    inside = False
+    state = '.'
+    for col in range(len(digarr[row])):
+      if ((state != '#') and (digarr[row][col] != state)):
+        inside = not inside
+        state = digarr[row][col]
+      if inside:
+        digarr[row][col] = '#'
+  printarr(digarr)
 
 def printarr(arr):
   toprint = ""
@@ -45,7 +67,9 @@ def printarr(arr):
 
 def main():
   rawinputarray = getinput()
-  numrows, numcols = getarrsize(rawinputarray)
-  print (numrows, numcols)
+  numrows, numcols, startpos = getarrsize(rawinputarray)
+  digarr = [['.' for col in range(numcols)] for row in range(numrows)]
+  dig(rawinputarray, digarr, startpos)
+  fill(digarr)
 
 main()
