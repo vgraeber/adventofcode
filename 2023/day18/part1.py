@@ -1,7 +1,7 @@
 from pathlib import Path
 
 def getinput():
-  path = path = Path(__file__).parent / "sample.txt"
+  path = path = Path(__file__).parent / "input.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -37,39 +37,72 @@ def getarrsize(inputarr):
   startpos = [pos[0] - top, pos[1] - left]
   return numrows, numcols, startpos
 
+def gettypecorner(diginst, instnum):
+  cornerchange = {'U': {'L': '7', 'R': 'F'}, 'D': {'L': 'J','R': 'L'}, 'L': {'U': 'L', 'D': 'F'}, 'R': {'U': 'J', 'D': '7'}}
+  prevline = diginst[instnum - 1]
+  currline = diginst[instnum]
+  return cornerchange[prevline[0]][currline[0]]
+
 def dig(diginst, digarr, pos):
-  digarr[pos[0]][pos[1]] = '#'
-  for line in diginst:
+  for instnum in range(len(diginst)):
+    line = diginst[instnum]
+    corner = gettypecorner(diginst, instnum)
+    digarr[pos[0]][pos[1]] = [corner, True]
     for i in range(int(line[1])):
       pos = move(pos, line[0], 1)
-      digarr[pos[0]][pos[1]] = '#'
-  printarr(digarr)
+      digarr[pos[0]][pos[1]] = ['#', False]
+  corner = gettypecorner(diginst, 0)
+  digarr[pos[0]][pos[1]] = [corner, True]
+#  printarr(digarr)
 
 def fill(digarr):
+  cornerpairs = {'F': {'J': True, '7': False}, 'L': {'7': True,'J': False}}
   for row in range(len(digarr)):
     inside = False
-    state = '.'
+    toggs = ['#', 'F', '7', 'J', 'L']
+    corner = False
+    startcorner = ''
+    endcorner = ''
     for col in range(len(digarr[row])):
-      if ((state != '#') and (digarr[row][col] != state)):
-        inside = not inside
-        state = digarr[row][col]
-      if inside:
-        digarr[row][col] = '#'
-  printarr(digarr)
+      pos = digarr[row][col]
+      if (pos[0] in toggs):
+        if pos[1]:
+          corner = not corner
+          if not corner:
+            endcorner = pos[0]
+            if cornerpairs[startcorner][endcorner]:
+              inside = not inside
+          else:
+            startcorner = pos[0]
+        elif (not corner):
+          inside = not inside
+      if (inside and not pos[1]):
+        digarr[row][col] = ['#', False]
+#  printarr(digarr)
+
+def calcvol(digarr):
+  vol = 0
+  for row in digarr:
+    for col in row:
+      pool = ['#', 'F', '7', 'J', 'L']
+      if (col[0] in pool):
+        vol += 1
+  print (vol)
 
 def printarr(arr):
   toprint = ""
   for row in arr:
     for col in row:
-      toprint += col
+      toprint += col[0]
     toprint += "\n"
   print (toprint)
 
 def main():
   rawinputarray = getinput()
   numrows, numcols, startpos = getarrsize(rawinputarray)
-  digarr = [['.' for col in range(numcols)] for row in range(numrows)]
+  digarr = [[['.', False] for col in range(numcols)] for row in range(numrows)]
   dig(rawinputarray, digarr, startpos)
   fill(digarr)
+  calcvol(digarr)
 
 main()
