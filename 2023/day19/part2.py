@@ -1,5 +1,5 @@
 from pathlib import Path
-import operator
+import copy
 
 def getinput():
   path = path = Path(__file__).parent / "sample.txt"
@@ -64,52 +64,90 @@ def conddicts(wkflows):
   for k in oneres:
     rem(wkflows, k)
 
-def sortcombos(workflows, ratingvalbounds):
+def getcombos(workflows):
   endres = ['R', 'A']
-  currwkflow = "in"
-  totnumcombos = pow(ratingvalbounds[1], 4)
   combos = []
-  flowqueue = []
-  for rule in workflows[currwkflow]["rules"]:
-    res = rule[1]
-    if res not in endres:
-      continue
-    else:
-      currwkflow = res
-"""
-def managebeam(origarr, beamarr, dir, pos):
-  dirqueue = []
-  while dir is not None:
-    dir = getnewbeamdir(origarr, beamarr, dir, pos)
-    if isinstance(dir, list):
-      dirqueue.append([dir[1], pos.copy()])
-      dir = dir[0]
-    elif dir is None:
-      if (len(dirqueue) > 0):
-        dir = dirqueue[0][0]
-        pos = dirqueue[0][1]
-        dirqueue.pop(0)
+  flowqueue = [{'x': [], 'm': [], 'a': [], 's': [], "goto": "in"}]
+  while (flowqueue != []):
+    reqs = flowqueue[0]
+    for rule in workflows[reqs["goto"]]["rules"]:
+      res = rule[1]
+      newreqs = copy.deepcopy(reqs)
+      for cond in rule[0]:
+        newreqs[cond[0]].append([cond[1], cond[2]])
+      if res not in endres:
+        newreqs["goto"] = res
+        flowqueue.append(newreqs)
       else:
-        return
-    pos = movebeam(dir, pos)
-    while not inbounds(origarr, pos):
-      if (len(dirqueue) > 0):
-        dir = dirqueue[0][0]
-        pos = dirqueue[0][1]
-        dirqueue.pop(0)
-        pos = movebeam(dir, pos)
-      else:
-        return
-"""
-opp = {'<': operator.lt, '>': operator.gt, "==": operator.eq, "<=": operator.le, ">=": operator.ge, "!=": operator.ne}
+        rem(newreqs, "goto")
+        if (res == 'A'):
+          combos.append(newreqs)
+    flowqueue.pop(0)
+  return combos
+
+def sortfunc(cond):
+  return cond[1]
+
+def sortcombos(combos):
+  for combo in combos:
+    combo['x'].sort(key=sortfunc)
+    combo['m'].sort(key=sortfunc)
+    combo['a'].sort(key=sortfunc)
+    combo['s'].sort(key=sortfunc)
+
+def calccombos(combos, rvbounds):
+  opp = {'<': ["dec", "excl"], '>': ["inc", "excl"], "<=": ["dec", "incl"], ">=": ["inc", "incl"]}
+  letters = ['x', 'm', 'a', 's']
+  totcombos = 0
+  for combo in combos:
+    for letter in letters:
+      prevdir = ''
+      letterbounds = [rvbounds.copy()]
+      rstrcs = combo[letter]
+      for rstrc in rstrcs:
+        info = opp[rstrc[0]]
+        dir = info[0]
+        type = info[1]
+        if ((dir == prevdir) or (prevdir == '')):
+          if (dir == "dec"):
+            if (type == "excl"):
+              rstrc[1] -= 1
+            letterbounds[-1][1] = rstrc[1]
+          else:
+            if (type == "excl"):
+              rstrc[1] += 1
+            letterbounds[-1][0] = rstrc[1]
+        else:
+          if (dir == "dec"):
+            if (type == "excl"):
+              rstrc[1] -= 1
+            letterbounds[-1][1] = rstrc[1]
+          else:
+            if (type == "excl"):
+              rstrc[1] += 1
+            letterbounds.append([rstrc[1], rvbounds[1]])
+      combo[letter] = letterbounds
+    lettersums = []
+    for letter in letters:
+      lettersum = 0
+      for inclrange in combo[letter]:
+        lettersum += inclrange[1] - inclrange[0] + 1
+      lettersums.append(lettersum)
+    combosum = 1
+    for sum in lettersums:
+      combosum *= sum
+    combo["combos"] = combosum
+    totcombos += combosum
+  print (totcombos)
+
 
 def main():
   rawworkflows = getinput()
-  ratingvalbounds = [1, 4000]
   workflows = formatinput(rawworkflows)
   conddicts(workflows)
-  #combos = sortcombos(workflows, ratingvalbounds)
-  for flowname, flow in workflows.items():
-    print (flowname, flow)
+  combos = getcombos(workflows)
+  sortcombos(combos)
+  rvbounds = [1, 4000]
+  calccombos(combos, rvbounds)
 
 main()
