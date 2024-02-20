@@ -1,7 +1,7 @@
 from pathlib import Path
 
 def getinput():
-  path = path = Path(__file__).parent / "input.txt"
+  path = path = Path(__file__).parent / "sample.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -47,45 +47,46 @@ def dig(diginst, digarr, pos):
   for instnum in range(len(diginst)):
     line = diginst[instnum]
     corner = gettypecorner(diginst, instnum)
-    digarr[pos[0]][pos[1]] = [corner, True]
+    digarr[pos[0]][pos[1]] = corner
     for i in range(int(line[1])):
       pos = move(pos, line[0], 1)
-      digarr[pos[0]][pos[1]] = ['#', False]
+      digarr[pos[0]][pos[1]] = '#'
   corner = gettypecorner(diginst, 0)
-  digarr[pos[0]][pos[1]] = [corner, True]
-#  printarr(digarr)
+  digarr[pos[0]][pos[1]] = corner
+  printarr(digarr)
 
 def fill(digarr):
   cornerpairs = {'F': {'J': True, '7': False}, 'L': {'7': True,'J': False}}
   for row in range(len(digarr)):
     inside = False
     toggs = ['#', 'F', '7', 'J', 'L']
+    corns = ['F', '7', 'J', 'L']
     corner = False
     startcorner = ''
     endcorner = ''
     for col in range(len(digarr[row])):
       pos = digarr[row][col]
-      if (pos[0] in toggs):
-        if pos[1]:
+      if (pos in toggs):
+        if (pos in corns):
           corner = not corner
           if not corner:
-            endcorner = pos[0]
+            endcorner = pos
             if cornerpairs[startcorner][endcorner]:
               inside = not inside
           else:
-            startcorner = pos[0]
+            startcorner = pos
         elif (not corner):
           inside = not inside
-      if (inside and not pos[1]):
-        digarr[row][col] = ['#', False]
-#  printarr(digarr)
+      if (inside and (pos not in corns)):
+        digarr[row][col] = '#'
+  printarr(digarr)
 
 def calcvol(digarr):
   vol = 0
   for row in digarr:
     for col in row:
       pool = ['#', 'F', '7', 'J', 'L']
-      if (col[0] in pool):
+      if (col in pool):
         vol += 1
   print (vol)
 
@@ -100,7 +101,7 @@ def printarr(arr):
 def main():
   rawinputarray = getinput()
   numrows, numcols, startpos = getarrsize(rawinputarray)
-  digarr = [[['.', False] for col in range(numcols)] for row in range(numrows)]
+  digarr = [['.' for col in range(numcols)] for row in range(numrows)]
   dig(rawinputarray, digarr, startpos)
   fill(digarr)
   calcvol(digarr)
