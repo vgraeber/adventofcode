@@ -22,11 +22,17 @@ def formatinput(rawworkflows):
       conds = rule.split(':')
       if (len(conds) == 1):
         req = []
-        for otherconds in wkflows[workflow[0]]["rules"]:
-          req.append([otherconds[0][0][0], opppairs[otherconds[0][0][1]], otherconds[0][0][2]])
+        for otherconds in wkflows[workflow[0]]["rules"][-1][0]:
+          req.append([otherconds[0], otherconds[1], otherconds[2]])
+        req[-1][1] = opppairs[req[-1][1]]
         res = conds[0]
       else:
-        req = [[conds[0][0], conds[0][1], int(conds[0][2:])]]
+        req = []
+        if (wkflows[workflow[0]]["rules"] != []):
+          for otherconds in wkflows[workflow[0]]["rules"][-1][0]:
+            req.append([otherconds[0], otherconds[1], otherconds[2]])
+          req[-1][1] = opppairs[req[-1][1]]
+        req.append([conds[0][0], conds[0][1], int(conds[0][2:])])
         res = conds[1]
       wkflows[workflow[0]]["rules"].append([req, res])
   return wkflows
@@ -88,7 +94,7 @@ def checkvalidity(newreqs, letter, sign, num):
 def getcombos(workflows, rvs):
   endres = ['R', 'A']
   combos = []
-  flowqueue = [{'x': [rvs[0], rvs[1]], 'm': [rvs[0], rvs[1]], 'a': [rvs[0], rvs[1]], 's': [rvs[0], rvs[1]], "goto": "in"}]
+  flowqueue = [{'x': [rvs[0], rvs[1]], 'm': [rvs[0], rvs[1]], 'a': [rvs[0], rvs[1]], 's': [rvs[0], rvs[1]], "goto": "in", "path": ["in"]}]
   while (flowqueue != []):
     reqs = flowqueue[0]
     for rule in workflows[reqs["goto"]]["rules"]:
@@ -102,9 +108,11 @@ def getcombos(workflows, rvs):
       if isvalid:
         if res not in endres:
           newreqs["goto"] = res
+          newreqs["path"].append(res)
           flowqueue.append(newreqs)
         else:
           rem(newreqs, "goto")
+          newreqs["path"].append(res)
           if (res == 'A'):
             combos.append(newreqs)
     flowqueue.pop(0)
@@ -128,7 +136,6 @@ def calccombos(combos):
       combosum *= combo[letter][1] - combo[letter][0] + 1
     combo["combos"] = combosum
     combosumsum += combosum
-    print (combo)
   print (combosumsum)
 
 def main():
