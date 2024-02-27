@@ -83,7 +83,7 @@ def getpulsecycle(inputlist):
   origlist = copy.deepcopy(inputlist)
   totalpulses = []
   totalpulses.append(sendpulse(inputlist))
-  while (inputlist != origlist):
+  while ((inputlist != origlist) and (len(totalpulses) < 1000)):
     totalpulses.append(sendpulse(inputlist))
   return totalpulses
 
