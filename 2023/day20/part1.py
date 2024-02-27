@@ -79,19 +79,19 @@ def sendpulse(inputlist):
           pulsequeue.append(newpulse)
   return totalpulses
 
-def getpulsecycle(inputlist):
+def getpulsecycle(inputlist, numbuttonpresses):
   origlist = copy.deepcopy(inputlist)
   totalpulses = []
   totalpulses.append(sendpulse(inputlist))
-  while ((inputlist != origlist) and (len(totalpulses) < 1000)):
+  while ((inputlist != origlist) and (len(totalpulses) < numbuttonpresses)):
     totalpulses.append(sendpulse(inputlist))
   return totalpulses
 
 def main():
   inputlist = getinput()
   inputlist = formatinput(inputlist)
-  pulsecyc = getpulsecycle(inputlist)
   numbuttonpresses = 1000
+  pulsecyc = getpulsecycle(inputlist, numbuttonpresses)
   rem = numbuttonpresses % len(pulsecyc)
   mult = (numbuttonpresses - rem) / len(pulsecyc)
   totalpulses = {"low": 0, "high": 0}
