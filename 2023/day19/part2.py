@@ -60,8 +60,8 @@ def conddicts(wkflows):
         res = rule[1]
         if res in oneres:
           rule[1] = wkflows[res]["rules"][0][1]
-          kres.append(rule[1])
-        elif res not in kres:
+          res = rule[1]
+        if res not in kres:
           kres.append(res)
       if (len(kres) == 1):
         oneres.append(k)
