@@ -83,7 +83,7 @@ def checkvalidity(newreqs, letter, sign, num):
         rstrc[0] = num
       return True
   else:
-    if (rstrc[0] < num < rstrc[1]):
+    if (rstrc[0] <= num <= rstrc[1]):
       if (dir == "dec"):
         rstrc[1] = num - 1
       else:
@@ -118,24 +118,17 @@ def getcombos(workflows, rvs):
     flowqueue.pop(0)
   return combos
 
-def sortfunc(cond):
-  return cond[1]
-
-def sortcombo(combo):
-  combo['x'].sort(key=sortfunc)
-  combo['m'].sort(key=sortfunc)
-  combo['a'].sort(key=sortfunc)
-  combo['s'].sort(key=sortfunc)
-
 def calccombos(combos):
   letters = ['x', 'm', 'a', 's']
   combosumsum = 0
+  totalcombos = 4000 ** 4
   for combo in combos:
     combosum = 1
     for letter in letters:
       combosum *= combo[letter][1] - combo[letter][0] + 1
     combo["combos"] = combosum
     combosumsum += combosum
+#    print (combo)
   print (combosumsum)
 
 def main():
