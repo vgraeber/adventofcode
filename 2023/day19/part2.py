@@ -75,15 +75,14 @@ def checkvalidity(newreqs, letter, sign, num):
   dir = opp[sign][0]
   type = opp[sign][1]
   rstrc = newreqs[letter]
-  if (type == "incl"):
-    if (rstrc[0] <= num <= rstrc[1]):
+  if (rstrc[0] <= num <= rstrc[1]):
+    if (type == "incl"):
       if (dir == "dec"):
         rstrc[1] = num
       else:
         rstrc[0] = num
       return True
-  else:
-    if (rstrc[0] <= num <= rstrc[1]):
+    else:
       if (dir == "dec"):
         rstrc[1] = num - 1
       else:
