@@ -1,7 +1,8 @@
 from pathlib import Path
+import copy
 
 def getinput():
-  path = path = Path(__file__).parent / "sample.txt"
+  path = path = Path(__file__).parent / "input.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -66,18 +67,40 @@ def handlepulse(module, pulse):
 
 def sendpulse(inputlist):
   pulsequeue = [["button", "low"]]
+  totalpulses = {"low": 0, "high": 0}
   for pulse in pulsequeue:
     module = findmodule(inputlist, pulse[0])
     for dest in module["destinations"]:
-      print (pulse[0], pulse[1], dest)
+      totalpulses[pulse[1]] += 1
       newmod = findmodule(inputlist, dest)
-      newpulse = handlepulse(newmod, pulse)
-      if (newpulse != []):
-        pulsequeue.append(newpulse)
+      if (newmod is not None):
+        newpulse = handlepulse(newmod, pulse)
+        if (newpulse != []):
+          pulsequeue.append(newpulse)
+  return totalpulses
+
+def getpulsecycle(inputlist):
+  origlist = copy.deepcopy(inputlist)
+  totalpulses = []
+  totalpulses.append(sendpulse(inputlist))
+  while (inputlist != origlist):
+    totalpulses.append(sendpulse(inputlist))
+  return totalpulses
 
 def main():
   inputlist = getinput()
   inputlist = formatinput(inputlist)
-  sendpulse(inputlist)
+  pulsecyc = getpulsecycle(inputlist)
+  numbuttonpresses = 1000
+  rem = numbuttonpresses % len(pulsecyc)
+  mult = (numbuttonpresses - rem) / len(pulsecyc)
+  totalpulses = {"low": 0, "high": 0}
+  for i in range(len(pulsecyc)):
+    totalpulses["low"] += mult * pulsecyc[i]["low"]
+    totalpulses["high"] += mult * pulsecyc[i]["high"]
+  for i in range(rem):
+    totalpulses["low"] += pulsecyc[i]["low"]
+    totalpulses["high"] += pulsescyc[i]["high"]
+  print (totalpulses["low"] * totalpulses["high"])
 
 main()
