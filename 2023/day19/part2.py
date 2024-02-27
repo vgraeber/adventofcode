@@ -16,7 +16,7 @@ def formatinput(rawworkflows):
   for workflow in rawworkflows:
     workflow = workflow.split('{')
     wkflows[workflow[0]] = {}
-    rules = workflow[1].split(',')
+    rules = workflow[1][:-1].split(',')
     wkflows[workflow[0]]["rules"] = []
     for rule in rules:
       conds = rule.split(':')
@@ -24,9 +24,9 @@ def formatinput(rawworkflows):
         req = []
         for otherconds in wkflows[workflow[0]]["rules"]:
           req.append([otherconds[0][0][0], opppairs[otherconds[0][0][1]], otherconds[0][0][2]])
-        res = conds[0][:-1]
+        res = conds[0]
       else:
-        req = [[conds[0][0], conds[0][1], int(conds[0][2:-1])]]
+        req = [[conds[0][0], conds[0][1], int(conds[0][2:])]]
         res = conds[1]
       wkflows[workflow[0]]["rules"].append([req, res])
   return wkflows
@@ -128,6 +128,7 @@ def calccombos(combos):
       combosum *= combo[letter][1] - combo[letter][0] + 1
     combo["combos"] = combosum
     combosumsum += combosum
+    print (combo)
   print (combosumsum)
 
 def main():
