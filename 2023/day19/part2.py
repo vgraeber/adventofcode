@@ -2,7 +2,7 @@ from pathlib import Path
 import copy
 
 def getinput():
-  path = path = Path(__file__).parent / "sample.txt"
+  path = path = Path(__file__).parent / "input.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -54,13 +54,13 @@ def conddicts(wkflows):
   oneres = []
   first = True
   while ((not clean(wkflows, oneres)) or (first)):
-    convs = 0
     for k in wkflows.keys():
       kres = []
       for rule in wkflows[k]["rules"]:
         res = rule[1]
         if res in oneres:
           rule[1] = wkflows[res]["rules"][0][1]
+          kres.append(rule[1])
         elif res not in kres:
           kres.append(res)
       if (len(kres) == 1):
@@ -127,7 +127,6 @@ def calccombos(combos):
       combosum *= combo[letter][1] - combo[letter][0] + 1
     combo["combos"] = combosum
     combosumsum += combosum
-#    print (combo)
   print (combosumsum)
 
 def main():
