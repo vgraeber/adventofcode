@@ -64,90 +64,78 @@ def conddicts(wkflows):
   for k in oneres:
     rem(wkflows, k)
 
-def getcombos(workflows):
+def checkvalidity(newreqs, letter, sign, num):
+  opp = {'<': ["dec", "excl"], '>': ["inc", "excl"], "<=": ["dec", "incl"], ">=": ["inc", "incl"]}
+  dir = opp[sign][0]
+  type = opp[sign][1]
+  rstrc = newreqs[letter]
+  if (type == "incl"):
+    if (rstrc[0] <= num <= rstrc[1]):
+      if (dir == "dec"):
+        rstrc[1] = num
+      else:
+        rstrc[0] = num
+      return True
+  else:
+    if (rstrc[0] < num < rstrc[1]):
+      if (dir == "dec"):
+        rstrc[1] = num - 1
+      else:
+        rstrc[0] = num + 1
+      return True
+  return False
+
+def getcombos(workflows, rvs):
   endres = ['R', 'A']
   combos = []
-  flowqueue = [{'x': [], 'm': [], 'a': [], 's': [], "goto": "in"}]
+  flowqueue = [{'x': [rvs[0], rvs[1]], 'm': [rvs[0], rvs[1]], 'a': [rvs[0], rvs[1]], 's': [rvs[0], rvs[1]], "goto": "in"}]
   while (flowqueue != []):
     reqs = flowqueue[0]
     for rule in workflows[reqs["goto"]]["rules"]:
       res = rule[1]
       newreqs = copy.deepcopy(reqs)
+      isvalid = True
       for cond in rule[0]:
-        newreqs[cond[0]].append([cond[1], cond[2]])
-      if res not in endres:
-        newreqs["goto"] = res
-        flowqueue.append(newreqs)
-      else:
-        rem(newreqs, "goto")
-        if (res == 'A'):
-          combos.append(newreqs)
+        if not checkvalidity(newreqs, cond[0], cond[1], cond[2]):
+          isvalid = False
+          break
+      if isvalid:
+        if res not in endres:
+          newreqs["goto"] = res
+          flowqueue.append(newreqs)
+        else:
+          rem(newreqs, "goto")
+          if (res == 'A'):
+            combos.append(newreqs)
     flowqueue.pop(0)
   return combos
 
 def sortfunc(cond):
   return cond[1]
 
-def sortcombos(combos):
-  for combo in combos:
-    combo['x'].sort(key=sortfunc)
-    combo['m'].sort(key=sortfunc)
-    combo['a'].sort(key=sortfunc)
-    combo['s'].sort(key=sortfunc)
+def sortcombo(combo):
+  combo['x'].sort(key=sortfunc)
+  combo['m'].sort(key=sortfunc)
+  combo['a'].sort(key=sortfunc)
+  combo['s'].sort(key=sortfunc)
 
-def calccombos(combos, rvbounds):
-  opp = {'<': ["dec", "excl"], '>': ["inc", "excl"], "<=": ["dec", "incl"], ">=": ["inc", "incl"]}
+def calccombos(combos):
   letters = ['x', 'm', 'a', 's']
-  totcombos = 0
+  combosumsum = 0
   for combo in combos:
-    for letter in letters:
-      prevdir = ''
-      letterbounds = [rvbounds.copy()]
-      rstrcs = combo[letter]
-      for rstrc in rstrcs:
-        info = opp[rstrc[0]]
-        dir = info[0]
-        type = info[1]
-        if ((dir == prevdir) or (prevdir == '')):
-          if (dir == "dec"):
-            if (type == "excl"):
-              rstrc[1] -= 1
-            letterbounds[-1][1] = rstrc[1]
-          else:
-            if (type == "excl"):
-              rstrc[1] += 1
-            letterbounds[-1][0] = rstrc[1]
-        else:
-          if (dir == "dec"):
-            if (type == "excl"):
-              rstrc[1] -= 1
-            letterbounds[-1][1] = rstrc[1]
-          else:
-            if (type == "excl"):
-              rstrc[1] += 1
-            letterbounds.append([rstrc[1], rvbounds[1]])
-      combo[letter] = letterbounds
-    lettersums = []
-    for letter in letters:
-      lettersum = 0
-      for inclrange in combo[letter]:
-        lettersum += inclrange[1] - inclrange[0] + 1
-      lettersums.append(lettersum)
     combosum = 1
-    for sum in lettersums:
-      combosum *= sum
+    for letter in letters:
+      combosum *= combo[letter][1] - combo[letter][0] + 1
     combo["combos"] = combosum
-    totcombos += combosum
-  print (totcombos)
-
+    combosumsum += combosum
+  print (combosumsum)
 
 def main():
   rawworkflows = getinput()
   workflows = formatinput(rawworkflows)
   conddicts(workflows)
-  combos = getcombos(workflows)
-  sortcombos(combos)
   rvbounds = [1, 4000]
-  calccombos(combos, rvbounds)
+  combos = getcombos(workflows, rvbounds)
+  calccombos(combos)
 
 main()
