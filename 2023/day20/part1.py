@@ -10,7 +10,9 @@ def getinput():
   rawinputlist.pop()
   lessrawinputlist = [line.split(" -> ") for line in rawinputlist]
   filteredinputlist = [[[line[0][0], line[0][1:]], line[1].split(", ")] for line in lessrawinputlist]
-  filteredinputlist[0][0] = ["broadcast", "broadcaster"]
+  for line in range(len(filteredinputlist)):
+    if (filteredinputlist[line][0] == ["b", "roadcaster"]):
+      filteredinputlist[line][0] = ["broadcast", "broadcaster"]
   filteredinputlist.insert(0, [["button", "button"], ["broadcaster"]])
   return filteredinputlist
 
