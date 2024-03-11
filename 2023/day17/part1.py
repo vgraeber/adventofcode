@@ -12,6 +12,14 @@ def getinput():
   rawinputarray = [[int(col) for col in row] for row in rawinputarray]
   return rawinputarray
 
+def printarr(arr):
+  toprint = ""
+  for row in arr:
+    for col in row:
+      toprint += str(col)
+    toprint += "\n"
+  print (toprint)
+
 def fixdistarrbounds(arr):
   arrbounds = {"row": [0, (len(arr) - 1)], "col": [0, (len(arr[0]) - 1)]}
   for r in range(len(arr)):
@@ -25,8 +33,20 @@ def fixdistarrbounds(arr):
       elif (c == arrbounds["col"][1]):
         arr[r][c].pop('W')
   for dir in arr[0][0].keys():
-    arr[0][0][dir] = [[0, 0]]
-  arr[0][0][None] = [[0, 0]]
+    arr[0][0][dir] = [{"dist": 0, "count": 0}]
+  arr[0][0][None] = [{"dist": 0, "count": 0}]
+
+def notmapped(distarr, prevdistarr):
+  if (distarr != prevdistarr):
+    return True
+  for row in distarr:
+    for col in row:
+      for dir in col.values():
+        for node in dir:
+          if (node["dist"] is None):
+            print (col)
+            return True
+  return False
 
 def rem(origlist, remele):
   try:
@@ -52,18 +72,19 @@ def getvaldirs(arr, currpos, prevdir, counter):
     rem(dirs, 'E')
   return dirs
 
-def movecruc(arr, currpos, prevdir, counter):
+def movecruc(arr, poss):
   moveindir = {'N': [-1, 0], 'S': [1, 0], 'E': [0, 1], 'W': [0, -1]}
-  valdirs = getvaldirs(arr, currpos, prevdir, counter)
+  valdirs = getvaldirs(arr, poss["currpos"], poss["prevdir"], poss["count"])
   nextposs = []
   for dir in valdirs:
     posmove = moveindir[dir]
-    nextpos = [[(currpos[0] + posmove[0]), (currpos[1] + posmove[1])]]
-    if (dir != prevdir):
-      nextpos.append(1)
+    nextpos = {}
+    nextpos["currpos"] = [(poss["currpos"][0] + posmove[0]), (poss["currpos"][1] + posmove[1])]
+    if (dir != poss["prevdir"]):
+      nextpos["count"] = 1
     else:
-      nextpos.append(counter + 1)
-    nextpos.append(dir)
+      nextpos["count"] = poss["count"] + 1
+    nextpos["prevdir"] = dir
     nextposs.append(nextpos)
   return nextposs
 
@@ -76,73 +97,54 @@ def remdupes(nodes):
 
 def editdistarr(origarr, distarr, currpos, nextposs):
   editedposs = []
+  currdist = distarr[currpos["currpos"][0]][currpos["currpos"][1]][currpos["prevdir"]]
   for pos in nextposs:
-    currdist = distarr[currpos[0][0]][currpos[0][1]][currpos[1]]
     for j in range(len(currdist)):
-      currnodesdir = distarr[pos[0][0]][pos[0][1]][pos[2]]
+      currnodesdir = distarr[pos["currpos"][0]][pos["currpos"][1]][pos["prevdir"]]
       for i in range(len(currnodesdir)):
-        adddist = origarr[pos[0][0]][pos[0][1]]
-        newdist = currdist[j][0] + adddist
+        adddist = origarr[pos["currpos"][0]][pos["currpos"][1]]
+        newdist = currdist[j]["dist"] + adddist
         currnode = currnodesdir[i]
-        origcount = currnode[1]
-        if (currnode[0] == "dist"):
-          currnode = [newdist, pos[1]]
+        newnode = {"dist": newdist, "count": pos["count"]}
+        if (currnode["dist"] is None):
+          currnode = newnode
           if (pos not in editedposs):
             editedposs.append(pos)
-        elif (((newdist <= currnode[0]) and (pos[1] <= origcount)) and ((newdist != currnode[0]) or (pos[1] != origcount))):
-          currnode = [newdist, pos[1]]
+        elif (((newdist <= currnode["dist"]) and (pos["count"] <= currnode["count"])) and ((newdist != currnode["dist"]) or (pos["count"] != currnode["count"]))):
+          currnode = newnode
           if (pos not in editedposs):
             editedposs.append(pos)
-        elif ((newdist < currnode[0]) or (pos[1] < origcount)):
-          currnodesdir.append([newdist, pos[1]])
+        elif ((newdist < currnode["dist"]) or (pos["count"] < currnode["count"])):
+          currnodesdir.append(newnode)
           if (pos not in editedposs):
             editedposs.append(pos)
         currnodesdir[i] = currnode
       currnodesdir = remdupes(currnodesdir)
-      #distarr[pos[0][0]][pos[0][1]][pos[2]] = currnodesdir
+      distarr[pos["currpos"][0]][pos["currpos"][1]][pos["prevdir"]] = currnodesdir
   return editedposs
-
-def notmapped(distarr, prevdistarr):
-  if (distarr != prevdistarr):
-    return True
-  return False
-  for row in distarr:
-    for col in row:
-      for dir in col.values():
-        for node in dir:
-          if (node[0] == "dist"):
-            print (col)
-            return True
-
-def printarr(arr):
-  toprint = ""
-  for row in arr:
-    for col in row:
-      toprint += str(col)
-    toprint += "\n"
-  print (toprint)
 
 def runthroughcity(rawinputarray, distarr):
   startpos = [0, 0]
   startcount = 0
-  mapqueue = [[startpos, startcount, None]]
+  mapqueue = [{"currpos": startpos, "count": startcount, "prevdir":  None}]
   prevdistarr = []
   while notmapped(distarr, prevdistarr):
     newmapqueue = []
     prevdistarr = copy.deepcopy(distarr)
     for poss in mapqueue:
-      nextposs = movecruc(rawinputarray, poss[0], poss[2], poss[1])
-      editedposs = editdistarr(rawinputarray, distarr, [poss[0], poss[2]], nextposs)
+      nextposs = movecruc(rawinputarray, poss)
+      editedposs = editdistarr(rawinputarray, distarr, poss, nextposs)
       for editedpos in editedposs:
-        newmapqueue.append(editedpos)
+        if (editedpos not in newmapqueue):
+          newmapqueue.append(editedpos)
     mapqueue = newmapqueue
 
 def main():
   rawinputarray = getinput()
   printarr(rawinputarray)
-  distarr = [[{'N': [["dist", "count"]], 'S': [["dist", "count"]], 'E': [["dist", "count"]], 'W': [["dist", "count"]]} for col in row] for row in rawinputarray]
+  distarr = [[{'N': [{"dist": None, "count": None}], 'S': [{"dist": None, "count": None}], 'E': [{"dist": None, "count": None}], 'W': [{"dist": None, "count": None}]} for col in row] for row in rawinputarray]
   fixdistarrbounds(distarr)
   runthroughcity(rawinputarray, distarr)
-  #printarr(distarr)
+  print (distarr[-1][-1])
 
 main()

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 def getinput():
-  path = path = Path(__file__).parent / "sample.txt"
+  path = path = Path(__file__).parent / "input.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -45,9 +45,12 @@ def dosteps(inputlist, startpos, numsteps):
             inputlist[pos[0]][pos[1]] = '.'
             if ([pos[0], pos[1]] == startpos):
               inputlist[pos[0]][pos[1]] = 'S'
-          newposqueue.append(newpos)
+          if (newpos not in newposqueue):
+            newposqueue.append(newpos)
     currsteps += 1
     posqueue = newposqueue
+#    print (currsteps)
+#    printarr(inputlist)
 
 def countplots(inputlist):
   numplots = 0
