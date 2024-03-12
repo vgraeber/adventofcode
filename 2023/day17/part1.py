@@ -107,8 +107,8 @@ def editdistarr(origarr, distarr, currpos, nextposs):
           if (pos not in editedposs):
             editedposs.append(pos)
         elif ((newnode["dist"] < currnode["dist"]) or (newnode["count"] < currnode["count"])):
+          currnodesdir.append(newnode)
           if (pos not in editedposs):
-            currnodesdir.append(newnode)
             editedposs.append(pos)
         currnodesdir[0] = currnode
       else:
@@ -118,12 +118,13 @@ def editdistarr(origarr, distarr, currpos, nextposs):
             currnode = newnode
             if (pos not in editedposs):
               editedposs.append(pos)
+          currnodesdir[i] = currnode
         for i in range(len(currnodesdir)):
           if ((newnode["dist"] < currnode["dist"]) or (newnode["count"] < currnode["count"])):
             if (pos not in editedposs):
               currnodesdir.append(newnode)
               editedposs.append(pos)
-        currnodesdir[i] = currnode
+          currnodesdir[i] = currnode
       currnodesdir = remdupes(currnodesdir)
       distarr[pos["currpos"][0]][pos["currpos"][1]][pos["prevdir"]] = currnodesdir
   return editedposs
