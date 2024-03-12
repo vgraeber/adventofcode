@@ -2,7 +2,7 @@ from pathlib import Path
 import copy
 
 def getinput():
-  path = path = Path(__file__).parent / "sample.txt"
+  path = path = Path(__file__).parent / "sample2.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -32,8 +32,6 @@ def fixdistarrbounds(arr):
         arr[r][c].pop('E')
       elif (c == arrbounds["col"][1]):
         arr[r][c].pop('W')
-  for dir in arr[0][0].keys():
-    arr[0][0][dir] = [{"dist": 0, "count": 0}]
   arr[0][0][None] = [{"dist": 0, "count": 0}]
 
 def notmapped(distarr, prevdistarr):
@@ -101,26 +99,40 @@ def editdistarr(origarr, distarr, currpos, nextposs):
   for pos in nextposs:
     for j in range(len(currdist)):
       currnodesdir = distarr[pos["currpos"][0]][pos["currpos"][1]][pos["prevdir"]]
-      for i in range(len(currnodesdir)):
-        adddist = origarr[pos["currpos"][0]][pos["currpos"][1]]
-        newdist = currdist[j]["dist"] + adddist
-        currnode = currnodesdir[i]
-        newnode = {"dist": newdist, "count": pos["count"]}
+      adddist = origarr[pos["currpos"][0]][pos["currpos"][1]]
+      newdist = currdist[j]["dist"] + adddist
+      newnode = {"dist": newdist, "count": pos["count"]}
+      if (len(currnodesdir) == 1):
+        currnode = currnodesdir[0]
         if (currnode["dist"] is None):
           currnode = newnode
           if (pos not in editedposs):
             editedposs.append(pos)
-        elif (((newdist <= currnode["dist"]) and (pos["count"] <= currnode["count"])) and ((newdist != currnode["dist"]) or (pos["count"] != currnode["count"]))):
+        elif (((newnode["dist"] <= currnode["dist"]) and (newnode["count"] <= currnode["count"])) and ((newnode["dist"] < currnode["dist"]) or (newnode["count"] < currnode["count"]))):
           currnode = newnode
           if (pos not in editedposs):
             editedposs.append(pos)
-        elif ((newdist < currnode["dist"]) or (pos["count"] < currnode["count"])):
-          currnodesdir.append(newnode)
+        elif ((newnode["dist"] < currnode["dist"]) or (newnode["count"] < currnode["count"])):
           if (pos not in editedposs):
+            currnodesdir.append(newnode)
             editedposs.append(pos)
+        currnodesdir[0] = currnode
+      else:
+        for i in range(len(currnodesdir)):
+          currnode = currnodesdir[i]
+          if (((newnode["dist"] <= currnode["dist"]) and (newnode["count"] <= currnode["count"])) and ((newnode["dist"] < currnode["dist"]) or (newnode["count"] < currnode["count"]))):
+            currnode = newnode
+            if (pos not in editedposs):
+              editedposs.append(pos)
+        for i in range(len(currnodesdir)):
+          if ((newnode["dist"] < currnode["dist"]) or (newnode["count"] < currnode["count"])):
+            if (pos not in editedposs):
+              currnodesdir.append(newnode)
+              editedposs.append(pos)
         currnodesdir[i] = currnode
       currnodesdir = remdupes(currnodesdir)
       distarr[pos["currpos"][0]][pos["currpos"][1]][pos["prevdir"]] = currnodesdir
+  print (editedposs)
   return editedposs
 
 def runthroughcity(rawinputarray, distarr):
@@ -128,7 +140,8 @@ def runthroughcity(rawinputarray, distarr):
   startcount = 0
   mapqueue = [{"currpos": startpos, "count": startcount, "prevdir":  None}]
   prevdistarr = []
-  while notmapped(distarr, prevdistarr):
+  count = 0
+  while (count < 10): #notmapped(distarr, prevdistarr):
     newmapqueue = []
     prevdistarr = copy.deepcopy(distarr)
     for poss in mapqueue:
@@ -138,6 +151,16 @@ def runthroughcity(rawinputarray, distarr):
         if (editedpos not in newmapqueue):
           newmapqueue.append(editedpos)
     mapqueue = newmapqueue
+    count += 1
+
+def printdistarr(arr):
+  toprint = ""
+  for row in arr:
+    for col in row:
+      toprint += str(col)
+      toprint += "\n"
+    toprint += "\n"
+  print (toprint)
 
 def main():
   rawinputarray = getinput()
@@ -145,6 +168,6 @@ def main():
   distarr = [[{'N': [{"dist": None, "count": None}], 'S': [{"dist": None, "count": None}], 'E': [{"dist": None, "count": None}], 'W': [{"dist": None, "count": None}]} for col in row] for row in rawinputarray]
   fixdistarrbounds(distarr)
   runthroughcity(rawinputarray, distarr)
-  print (distarr[-1][-1])
+#  printdistarr(distarr)
 
 main()
