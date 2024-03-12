@@ -2,7 +2,7 @@ from pathlib import Path
 import copy
 
 def getinput():
-  path = path = Path(__file__).parent / "sample.txt"
+  path = path = Path(__file__).parent / "sample3.txt"
   inputfile = open(path, 'r')
   rawinput = inputfile.read()
   inputfile.close()
@@ -45,9 +45,8 @@ def rem(origlist, remele):
   except ValueError:
     pass
 
-def getvaldirs(arr, currpos, prevdir, counter):
+def getvaldirs(arrbounds, currpos, prevdir, counter):
   oppdirs = {'N': 'S', 'S': 'N', 'E': 'W', 'W': 'E'}
-  arrbounds = {"row": [0, (len(arr) - 1)], "col": [0, (len(arr[0]) - 1)]}
   dirs = ['N', 'E', 'S', 'W']
   oppdir = oppdirs.setdefault(prevdir, None)
   rem(dirs, oppdir)
@@ -63,20 +62,21 @@ def getvaldirs(arr, currpos, prevdir, counter):
     rem(dirs, 'E')
   return dirs
 
-def movecruc(arr, poss, distarr):
+def movecruc(arrbounds, poss):
   moveindir = {'N': [-1, 0], 'S': [1, 0], 'E': [0, 1], 'W': [0, -1]}
-  valdirs = getvaldirs(arr, poss["currpos"], poss["prevdir"], poss["count"])
+  currpos = poss["currpos"]
+  valdirs = getvaldirs(arrbounds, currpos, poss["prevdir"], poss["count"])
   nextposs = []
   for dir in valdirs:
     posmove = moveindir[dir]
-    nextpos = {}
-    nextpos["currpos"] = [(poss["currpos"][0] + posmove[0]), (poss["currpos"][1] + posmove[1])]
+    nextpos = copy.deepcopy(poss)
+    nextpos["currpos"][0] += posmove[0]
+    nextpos["currpos"][1] += posmove[1]
     if (dir != poss["prevdir"]):
       nextpos["count"] = 1
+      nextpos["prevdir"] = dir
     else:
-      nextpos["count"] = poss["count"] + 1
-    nextpos["prevdir"] = dir
-    nextpos["prevdist"] = poss["prevdist"]
+      nextpos["count"] += 1
     nextposs.append(nextpos)
   return nextposs
 
@@ -102,49 +102,61 @@ def editdistarr(origarr, distarr, currpos, nextposs):
           currnode = newnode
           if (pos not in editedposs):
             editedposs.append(pos)
-        elif (((newnode["dist"] <= currnode["dist"]) and (newnode["count"] <= currnode["count"])) and ((newnode["dist"] < currnode["dist"]) or (newnode["count"] < currnode["count"]))):
-          currnode = newnode
-          if (pos not in editedposs):
-            editedposs.append(pos)
-        elif ((newnode["dist"] < currnode["dist"]) or (newnode["count"] < currnode["count"])):
-          currnodesdir.append(newnode)
-          if (pos not in editedposs):
-            editedposs.append(pos)
+        else:
+          ltedist = (newnode["dist"] <= currnode["dist"])
+          ltecount = (newnode["count"] <= currnode["count"])
+          ltdist = (newnode["dist"] < currnode["dist"])
+          ltcount = (newnode["count"] < currnode["count"])
+          if ((ltedist and ltecount) and (ltdist or ltcount)):
+            currnode = newnode
+            if (pos not in editedposs):
+              editedposs.append(pos)
+          elif (ltdist or ltcount):
+            currnodesdir.append(newnode)
+            if (pos not in editedposs):
+              editedposs.append(pos)
         currnodesdir[0] = currnode
       else:
         for i in range(len(currnodesdir)):
           currnode = currnodesdir[i]
-          if (((newnode["dist"] <= currnode["dist"]) and (newnode["count"] <= currnode["count"])) and ((newnode["dist"] < currnode["dist"]) or (newnode["count"] < currnode["count"]))):
+          ltedist = (newnode["dist"] <= currnode["dist"])
+          ltecount = (newnode["count"] <= currnode["count"])
+          ltdist = (newnode["dist"] < currnode["dist"])
+          ltcount = (newnode["count"] < currnode["count"])
+          if ((ltedist and ltecount) and (ltdist or ltcount)):
             currnode = newnode
             if (pos not in editedposs):
               editedposs.append(pos)
           currnodesdir[i] = currnode
         for i in range(len(currnodesdir)):
-          if ((newnode["dist"] < currnode["dist"]) or (newnode["count"] < currnode["count"])):
+          currnode = currnodesdir[i]
+          ltdist = (newnode["dist"] < currnode["dist"])
+          ltcount = (newnode["count"] < currnode["count"])
+          if (ltdist or ltcount):
+            currnodesdir.append(newnode)
             if (pos not in editedposs):
-              currnodesdir.append(newnode)
               editedposs.append(pos)
           currnodesdir[i] = currnode
       currnodesdir = remdupes(currnodesdir)
-      distarr[pos["currpos"][0]][pos["currpos"][1]][pos["prevdir"]] = currnodesdir
+      #distarr[pos["currpos"][0]][pos["currpos"][1]][pos["prevdir"]] = currnodesdir
   return editedposs
 
-def runthroughcity(rawinputarray, distarr):
-  startpos = [0, 0]
-  startcount = 0
-  startdist = 0
-  mapqueue = [{"currpos": startpos, "count": startcount, "prevdir":  None, "prevdist": startdist}]
+def runthroughcity(arr, distarr):
+  arrbounds = {"row": [0, (len(arr) - 1)], "col": [0, (len(arr[0]) - 1)]}
+  mapqueue = [{"currpos": [0, 0], "count": 0, "prevdir":  None, "prevdist": 0}]
   prevdistarr = []
+  count = 0
   while notmapped(distarr, prevdistarr):
     newmapqueue = []
     prevdistarr = copy.deepcopy(distarr)
     for poss in mapqueue:
-      nextposs = movecruc(rawinputarray, poss, distarr)
-      editedposs = editdistarr(rawinputarray, distarr, poss, nextposs)
+      nextposs = movecruc(arrbounds, poss)
+      editedposs = editdistarr(arr, distarr, poss, nextposs)
       for editedpos in editedposs:
         if (editedpos not in newmapqueue):
           newmapqueue.append(editedpos)
     mapqueue = newmapqueue
+    count += 1
 
 def main():
   rawinputarray = getinput()
@@ -152,6 +164,6 @@ def main():
   distarr = [[{'N': [{"dist": None, "count": None}], 'S': [{"dist": None, "count": None}], 'E': [{"dist": None, "count": None}], 'W': [{"dist": None, "count": None}]} for col in row] for row in rawinputarray]
   fixdistarrbounds(distarr)
   runthroughcity(rawinputarray, distarr)
-  print (distarr[-1][-1])
+  printarr(distarr)
 
 main()
