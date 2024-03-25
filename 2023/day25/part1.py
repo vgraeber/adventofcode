@@ -8,7 +8,7 @@ def getinput():
   rawinputlist = rawinput.split("\n")
   rawinputlist.pop()
   lessrawinputlist = [line.split(": ") for line in rawinputlist]
-  filteredinputlist = [[line[0], line[1].split(" ")] for line in lessrawinputlist]
+  filteredinputlist = [[line[0], line[1].split()] for line in lessrawinputlist]
   return filteredinputlist
 
 def formatinput(inputlist):
