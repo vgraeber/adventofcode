@@ -100,6 +100,9 @@ def editdistarr(origarr, distarr, currpos, nextposs):
         editedposs.append(pos)
   return editedposs
 
+def distval(item):
+  return item["count"]
+
 def runthroughcity(arr, distarr):
   arrbounds = {"row": [0, (len(arr) - 1)], "col": [0, (len(arr[0]) - 1)]}
   mapqueue = [{"currpos": [0, 0], "count": 0, "prevdir":  None, "prevdist": 0}]
@@ -113,6 +116,7 @@ def runthroughcity(arr, distarr):
       for editedpos in editedposs:
         if (editedpos not in newmapqueue):
           newmapqueue.append(editedpos)
+    newmapqueue.sort(key=distval)
     mapqueue = newmapqueue
 
 def printdistarr(arr):
