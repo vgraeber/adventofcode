@@ -39,6 +39,19 @@ def formatinput(inputlist):
     newinputlist.append(module)
   return newinputlist
 
+def findmodulesbydest(inputlist, dest):
+  modules = []
+  for module in inputlist:
+    if (dest in module["destinations"]):
+      modules.append(module)
+  return modules
+
+def getcycmodules(inputlist, endmod):
+  cycmodules = findmodulesbydest(inputlist, endmod)
+  while (len(cycmodules) == 1):
+    cycmodules = findmodulesbydest(inputlist, cycmodules[0]["name"])
+  return cycmodules
+
 def conjunctmodcheck(memory):
   for v in memory.values():
     if (v == "low"):
@@ -67,7 +80,7 @@ def handlepulse(module, pulse):
     newpulse = [module["name"], pulse[1]]
   return newpulse
 
-def sendpulse(inputlist):
+def sendpulse(inputlist, cycmodule):
   pulsequeue = [["button", "low"]]
   totalpulses = {"low": 0, "high": 0}
   end = False
@@ -76,7 +89,7 @@ def sendpulse(inputlist):
     for dest in module["destinations"]:
       totalpulses[pulse[1]] += 1
       newmod = findmodule(inputlist, dest)
-      if ((pulse[1] == "low") and (dest == "rx")):
+      if ((conjunctmodcheck(cycmodule) == "high") and (dest == cycmodule["name"])):
         end = True
       if (newmod is not None):
         newpulse = handlepulse(newmod, pulse)
@@ -84,23 +97,25 @@ def sendpulse(inputlist):
           pulsequeue.append(newpulse)
   return totalpulses, end
 
-def getpulsecycle(inputlist):
-  totalpulses = []
-  pulsecyc, end = sendpulse(inputlist)
-  totalpulses.append(pulsecyc)
-  while (not end):
-    pulsecyc, end = sendpulse(inputlist)
-    totalpulses.append(pulsecyc)
-  return totalpulses
+def getpulsecycle(inputlist, cycmodules):
+  totalpulsecycs = []
+  for cycmodule in cycmodules:
+    end = False
+    pulsecyc = {"low": 0, "high": 0}
+    while (not end):
+      pulsenums, end = sendpulse(inputlist, cycmodule)
+      pulsecyc["low"] += pulsenums["low"]
+      pulsecyc["high"] += pulsenums["high"]
+    totalpulsecycs.append(pulsecyc)
+    print (pulsecyc)
+  return totalpulsecycs
 
 def main():
   inputlist = getinput()
   inputlist = formatinput(inputlist)
-  pulsecyc = getpulsecycle(inputlist)
-  totalpulses = {"low": 0, "high": 0}
-  for i in range(len(pulsecyc)):
-    totalpulses["low"] += pulsecyc[i]["low"]
-    totalpulses["high"] += pulsecyc[i]["high"]
-  print (totalpulses["low"] * totalpulses["high"])
+  cycmodules = getcycmodules(inputlist, "rx")
+  pulsecyc = getpulsecycle(inputlist, cycmodules)
+  print (pulsecyc)
+#  print (totalpulses["low"] * totalpulses["high"])
 
 main()
